@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TELUS - Plan Selection</title>
+    
+    <!-- TELUS UDS Dependencies -->
+    <link rel="stylesheet" href="https://cdn.telus.digital/universal-design-system/v1.0.0/styles/main.css">
+    <script src="https://cdn.telus.digital/universal-design-system/v1.0.0/scripts/main.js"></script>
+    
+    <!-- Application Dependencies -->
+    <script src="constants.js"></script>
+    <script src="styles.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -12,16 +20,28 @@
             --telus-dark: #2A2C2E;
             --telus-light-gray: #F7F7F7;
             --telus-border: #E0E0E0;
+            
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-xxl: 2.5rem;
+
+            /* Z-index */
+            --z-index-panel-toggle: 1000;
+            --z-index-messages: 1000;
         }
         .panel-toggle {
             position: absolute;
-            top: 10px;
+            top: var(--spacing-sm);
             background: var(--telus-purple);
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: var(--spacing-xs) var(--spacing-sm);
             cursor: pointer;
-            z-index: 1000;
+            z-index: var(--z-index-panel-toggle);
         }
         .left-panel-toggle {
             left: 10px;
@@ -35,7 +55,13 @@
         .output-panel.collapsed {
             transform: translateX(100%);
         }
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; color: var(--telus-dark); line-height: 1.6; background: var(--telus-light-gray); }
+        body { 
+            font-family: 'TELUS-Web', 'Helvetica Neue', Arial, sans-serif; 
+            color: var(--telus-dark); 
+            line-height: 1.6; 
+            background: var(--telus-light-gray);
+            letter-spacing: -0.6px;
+        }
         .layout { 
             display: flex; 
             min-height: 100vh;
@@ -50,13 +76,13 @@
             width: 350px; 
             background: white; 
             border-right: 2px solid var(--telus-border); 
-            padding: 2rem; 
+            padding: var(--spacing-xl); 
             overflow-y: auto;
             height: 100vh;
             position: fixed;
             left: 0;
             top: 0;
-            transition: transform 0.3s ease-in-out;
+            transition: all 0.3s ease-in-out;
         }
         .config-panel h2 { color: var(--telus-purple); margin-bottom: 1.5rem; font-size: 1.3rem; border-bottom: 2px solid var(--telus-purple); padding-bottom: 0.5rem; }
         .config-section { 
@@ -103,24 +129,28 @@
         }
         .form-group { margin-bottom: 1rem; }
         .form-group label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.85rem; }
-.form-group input, .form-group select { 
+        /* TELUS Form Input Styles */
+        .form-group input, .form-group select { 
             width: 100%; 
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--telus-border); 
-            border-radius: 4px;
-            font-size: 1rem; 
+            padding: 1rem;
+            border: 0.125rem solid var(--telus-border); 
+            border-radius: 0.25rem;
+            font-size: 1.125rem; 
             line-height: 1.5;
             transition: all 0.2s ease;
             background-color: white;
             color: var(--telus-dark);
+            font-family: 'TELUS-Web', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            letter-spacing: -0.6px;
         }
         .form-group input:hover, .form-group select:hover {
             border-color: var(--telus-purple);
+            box-shadow: 0 0 0 0.125rem var(--telus-purple);
         }
         .form-group input:focus, .form-group select:focus { 
             outline: none; 
-            border-color: var(--telus-purple); 
-            box-shadow: 0 0 0 2px rgba(75, 40, 109, 0.2);
+            border-color: var(--telus-purple);
+            box-shadow: 0 0 0 0.125rem var(--telus-purple), 0 0 0 0.25rem rgba(75, 40, 109, 0.25);
         }
         .form-group input::placeholder, .form-group select::placeholder {
             color: #71757B;
@@ -383,32 +413,8 @@
             margin-top: 1rem; 
             font-weight: 600;
         }
-.btn { 
-            padding: 0.75rem 1.5rem; 
-            border: none; 
-            border-radius: 4px; 
-            font-size: 1rem; 
-            font-weight: 700; 
-            cursor: pointer; 
-            width: 100%; 
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-        }
-        .btn-primary { 
-            background-color: var(--telus-purple); 
-            color: white; 
-        }
-        .btn-primary:hover { 
-            background-color: #371e54; 
-        }
-        .btn-secondary { 
-            background-color: transparent; 
-            color: var(--telus-purple);
-            border: 2px solid var(--telus-purple);
-        }
-        .btn-secondary:hover { 
-            background-color: rgba(75, 40, 109, 0.1);
-        }
+        /* TELUS Button Styles */
+        /* TELUS Button Styles are now handled by UDS classes */
         .subscriber-review-section { background: white; border-radius: 12px; padding: 2.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--telus-border); }
         .review-header h2 { color: var(--telus-purple); font-size: 1.8rem; }
@@ -687,86 +693,7 @@
                     </section>
                     <section class="plans-section">
                         <h2 id="plansSectionTitle">Choose Your Perfect Plan</h2>
-                        <div class="plans-grid">
-                            <div class="plan-card" id="plan-5g-complete">
-                                <div class="plan-name">5G+ Complete</div>
-                                <div class="plan-price-data-section">
-                                    <div class="plan-price-section">
-                                        <div class="original-price">$85/mo.</div>
-                                        <div class="current-price"><span class="amount">85</span><span class="per-month">/mo.</span></div>
-                                    </div>
-                                    <div class="data-section">
-                                        <div class="data-amount"><span class="amount">100</span><span class="unit">GB</span></div>
-                                        <div class="speed">at 5G+ Speed</div>
-                                    </div>
-                                </div>
-                                <div class="discount-badge-container"></div>
-                                <div class="plan-features-section">
-                                    <ul class="plan-features">
-                                        <li>100GB of nationwide data, talk and text</li>
-                                        <li>5-Year Rate Plan Price Lock</li>
-                                        <li>Easy Roam from $5/day</li>
-                                    </ul>
-                                </div>
-                                <div class="plan-actions">
-                                    <button class="btn btn-primary" onclick="selectPlan('20gb-plan-id', '100GB', '$85')">Add now</button>
-                                    <a href="#" class="full-details">Full plan details</a>
-                                </div>
-                            </div>
-                            <div class="plan-card" id="plan-5g-complete-canada-us">
-                                <div class="plan-name">5G+ Complete Canada-US</div>
-                                <div class="plan-price-data-section">
-                                    <div class="plan-price-section">
-                                        <div class="original-price">$95/mo.</div>
-                                        <div class="current-price"><span class="amount">95</span><span class="per-month">/mo.</span></div>
-                                    </div>
-                                    <div class="data-section">
-                                        <div class="data-amount"><span class="amount">175</span><span class="unit">GB</span></div>
-                                        <div class="speed">at 5G+ Speed</div>
-                                    </div>
-                                </div>
-                                <div class="discount-badge-container"></div>
-                                <div class="plan-features-section">
-                                    <ul class="plan-features">
-                                        <li>175GB of data, talk and text in Canada and the US</li>
-                                        <li>5-Year Rate Plan Price Lock</li>
-                                        <li>Easy Roam from $5/day</li>
-                                    </ul>
-                                </div>
-                                <div class="plan-actions">
-                                    <button class="btn btn-primary" onclick="selectPlan('5g-complete-plan-id', '175GB', '$95')">Add now</button>
-                                    <a href="#" class="full-details">Full plan details</a>
-                                </div>
-                            </div>
-                            <div class="plan-card" id="plan-5g-complete-explore">
-                                <div class="plan-name">5G+ Complete Explore</div>
-                                <div class="plan-price-data-section">
-                                    <div class="plan-price-section">
-                                        <div class="original-price" style="display: none;">$115/mo.</div>
-                                        <div class="current-price"><span class="amount">115</span><span class="per-month">/mo.</span></div>
-                                    </div>
-                                    <div class="data-section">
-                                        <div class="data-amount"><span class="amount">250</span><span class="unit">GB</span></div>
-                                        <div class="speed">at 5G+ Speed</div>
-                                    </div>
-                                </div>
-                                <div class="discount-badge-container"></div>
-                                <div class="plan-features-section">
-                                    <ul class="plan-features">
-                                        <li>250GB of data, talk & text in Canada and 68 international destinations</li>
-                                        <li>5-Year Rate Plan Price Lock</li>
-                                        <li>Easy Roam from $5/day</li>
-                                    </ul>
-                                </div>
-                                <div class="plan-notice">
-                                    This plan is not eligible for multi-line discount
-                                </div>
-                                <div class="plan-actions">
-                                    <button class="btn btn-primary" onclick="selectPlan('unlimited-plan-id', '250GB', '$115')">Add now</button>
-                                    <a href="#" class="full-details">Full plan details</a>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="plans-grid" id="plansGrid"></div>
                     </section>
                 </div>
 
@@ -774,7 +701,7 @@
                     <section class="subscriber-review-section">
                         <div class="review-header">
                             <h2>Review Your Selection</h2>
-                            <button class="back-btn" onclick="backToPlans()">← Back to Plans</button>
+                            <button class="uds-button uds-button--secondary" onclick="backToPlans()">← Back to Plans</button>
                         </div>
                         <div id="maxSubscribersWarning" class="max-subscribers-warning" style="display: none;"></div>
                         <div id="subscribersList"></div>
@@ -795,12 +722,12 @@
                                     <option value="PHYSICAL">Physical SIM</option>
                                 </select>
                             </div>
-                            <button class="btn btn-primary" onclick="saveSubscriberDetails()">Save Details</button>
-                            <button class="btn btn-secondary" onclick="cancelSubscriberDetails()">Cancel</button>
+                            <button class="uds-button uds-button--primary" onclick="saveSubscriberDetails()">Save Details</button>
+                            <button class="uds-button uds-button--secondary" onclick="cancelSubscriberDetails()">Cancel</button>
                         </div>
                         <div class="action-buttons">
-                            <button class="btn btn-outline" onclick="addNewPlan()">+ Add New Plan</button>
-                            <button class="btn btn-secondary" onclick="proceedToCheckout()">Proceed to Checkout →</button>
+                            <button class="uds-button uds-button--secondary" onclick="addNewPlan()">+ Add New Plan</button>
+                            <button class="uds-button uds-button--primary" onclick="proceedToCheckout()">Proceed to Checkout →</button>
                         </div>
                     </section>
                 </div>
@@ -809,95 +736,14 @@
                     <section class="edit-plan-section">
                         <div class="review-header">
                             <h2>Edit Plan Selection</h2>
-                            <button class="back-btn" onclick="cancelEdit()">← Cancel</button>
+                            <button class="uds-button uds-button--secondary" onclick="cancelEdit()">← Cancel</button>
                         </div>
                         <div class="editing-info">
                             <p id="editingSubscriberInfo">Editing plan</p>
                         </div>
                         <section class="plans-section">
                             <h2 id="plansSectionTitle">Choose Your Perfect Plan</h2>
-                            <div class="plans-grid">
-<div class="plan-card" id="edit-plan-5g-complete">
-                                    <div class="current-plan-badge" style="display: none;">Current selected plan</div>
-                                    <div class="plan-name">5G+ Complete</div>
-                                    <div class="plan-price-data-section">
-                                        <div class="plan-price-section">
-                                            <div class="original-price">$85/mo.</div>
-                                            <div class="current-price"><span class="amount">85</span><span class="per-month">/mo.</span></div>
-                                        </div>
-                                        <div class="data-section">
-                                            <div class="data-amount"><span class="amount">100</span><span class="unit">GB</span></div>
-                                            <div class="speed">at 5G+ Speed</div>
-                                        </div>
-                                    </div>
-                                    <div class="discount-badge-container"></div>
-                                    <div class="plan-features-section">
-                                        <ul class="plan-features">
-                                            <li>100GB of nationwide data, talk and text</li>
-                                            <li>5-Year Rate Plan Price Lock</li>
-                                            <li>Easy Roam from $5/day</li>
-                                        </ul>
-                                    </div>
-                                    <div class="plan-actions">
-                                        <button class="btn btn-primary" onclick="updateSubscriberPlan('20gb-plan-id', '100GB', '$85')">Update Plan</button>
-                                        <a href="#" class="full-details">Full plan details</a>
-                                    </div>
-                                </div>
-<div class="plan-card" id="edit-plan-5g-complete-canada-us">
-                                    <div class="current-plan-badge" style="display: none;">Current selected plan</div>
-                                    <div class="plan-name">5G+ Complete Canada-US</div>
-                                    <div class="plan-price-data-section">
-                                        <div class="plan-price-section">
-                                            <div class="original-price">$95/mo.</div>
-                                            <div class="current-price"><span class="amount">95</span><span class="per-month">/mo.</span></div>
-                                        </div>
-                                        <div class="data-section">
-                                            <div class="data-amount"><span class="amount">175</span><span class="unit">GB</span></div>
-                                            <div class="speed">at 5G+ Speed</div>
-                                        </div>
-                                    </div>
-                                    <div class="discount-badge-container"></div>
-                                    <div class="plan-features-section">
-                                        <ul class="plan-features">
-                                            <li>175GB of data, talk and text in Canada and the US</li>
-                                            <li>5-Year Rate Plan Price Lock</li>
-                                            <li>Easy Roam from $5/day</li>
-                                        </ul>
-                                    </div>
-                                    <div class="plan-actions">
-                                        <button class="btn btn-primary" onclick="updateSubscriberPlan('5g-complete-plan-id', '175GB', '$95')">Update Plan</button>
-                                        <a href="#" class="full-details">Full plan details</a>
-                                    </div>
-                                </div>
-<div class="plan-card" id="edit-plan-5g-complete-explore">
-                                    <div class="current-plan-badge" style="display: none;">Current selected plan</div>
-                                    <div class="plan-name">5G+ Complete Explore</div>
-                                    <div class="plan-price-data-section">
-                                        <div class="plan-price-section">
-                                            <div class="original-price" style="display: none;">$115/mo.</div>
-                                            <div class="current-price"><span class="amount">115</span><span class="per-month">/mo.</span></div>
-                                        </div>
-                                        <div class="data-section">
-                                            <div class="data-amount"><span class="amount">250</span><span class="unit">GB</span></div>
-                                            <div class="speed">at 5G+ Speed</div>
-                                        </div>
-                                    </div>
-                                    <div class="discount-badge-container"></div>
-                                    <div class="plan-features-section">
-                                        <ul class="plan-features">
-                                            <li>250GB of data, talk & text in Canada and 68 international destinations</li>
-                                            <li>5-Year Rate Plan Price Lock</li>
-                                            <li>Easy Roam from $5/day</li>
-                                        </ul>
-                                    </div>
-                                    <div class="plan-notice">
-                                        This plan is not eligible for multi-line discount
-                                    </div>
-                                    <div class="plan-actions">
-                                        <button class="btn btn-primary" onclick="updateSubscriberPlan('unlimited-plan-id', '250GB', '$115')">Update Plan</button>
-                                        <a href="#" class="full-details">Full plan details</a>
-                                    </div>
-                                </div>
+                            <div class="plans-grid" id="editPlansGrid">
                             </div>
                         </section>
                     </section>
@@ -936,15 +782,15 @@
     </div>
 
     <script>
-        let currentLineCount = 1, maxLines = 6, editingSubscriberIndex = null;
+        let currentLineCount = 1, maxLines = DEFAULT_MAX_LINES, editingSubscriberIndex = null;
         let isAddingNewPlan = false;
-        let effectiveMaxLines = 6;
-        const MIN_LINES = 1;
-const planMap = {
-            '20gb-plan-id': { name: '100GB', price: '$85', cardId: 'plan-5g-complete' },
-            '5g-complete-plan-id': { name: '175GB', price: '$95', cardId: 'plan-5g-complete-canada-us' },
-            'unlimited-plan-id': { name: '250GB', price: '$115', cardId: 'plan-5g-complete-explore' }
-        };
+        let effectiveMaxLines = DEFAULT_MAX_LINES;
+        // Normalize PLAN_DETAILS into planMap with price strings to match call-sites that expect '$XX'
+        const planMap = {};
+        Object.keys(PLAN_DETAILS).forEach(id => {
+            const d = PLAN_DETAILS[id];
+            planMap[id] = Object.assign({}, d, { price: `$${d.price}` });
+        });
         let config = {
             uiSubscribers: [{ selectedProvinceCode: "ON", selectedCity: "TORONTO", marketSegmentId: "bb08e53d-0f4c-4486-bd0d-5c039a1809ac", selectedProductTypeId: "qweqwrwr-0f4c-4486-bd0d-5c039a1809ac" }],
             mobilityTransactionInfo: { defaultNumberOfPeople: 4, mobilityAccount: { maxSubscriberAllowed: 6 } }
@@ -1820,7 +1666,89 @@ function editSubscriber(index) {
             applyConfiguration();
             displayShareableLink();
             addSubscriberForm(); // Add the first subscriber form
+            renderPlanCards(); // build plan cards from stub data
             updateLineCounterMessage(); // Initialize the line counter message
+        }
+
+        // Render plan cards dynamically into the selection and edit grids using PLAN_DETAILS + PLAN_NAMES
+        function renderPlanCards() {
+            const grid = document.getElementById('plansGrid');
+            const editGrid = document.getElementById('editPlansGrid');
+            if (!grid || !editGrid) return;
+            grid.innerHTML = '';
+            editGrid.innerHTML = '';
+
+            Object.keys(PLAN_DETAILS).forEach(planId => {
+                const details = PLAN_DETAILS[planId];
+                const displayName = PLAN_NAMES && PLAN_NAMES[planId] ? PLAN_NAMES[planId] : details.name;
+                const price = details.price;
+                const dataLabel = details.name;
+                const cardId = details.cardId; // e.g. 'plan-5g-complete'
+
+                // Selection view card
+                const card = document.createElement('div');
+                card.className = 'plan-card';
+                card.id = cardId;
+                card.innerHTML = `
+                    <div class="plan-name">${displayName}</div>
+                    <div class="plan-price-data-section">
+                        <div class="plan-price-section">
+                            <div class="original-price" style="display:none;">$${price}/mo.</div>
+                            <div class="current-price"><span class="amount">${price}</span><span class="per-month">/mo.</span></div>
+                        </div>
+                        <div class="data-section">
+                            <div class="data-amount"><span class="amount">${dataLabel.replace(/[^0-9]/g,'')}</span><span class="unit">GB</span></div>
+                            <div class="speed">at 5G+ Speed</div>
+                        </div>
+                    </div>
+                    <div class="discount-badge-container"></div>
+                    <div class="plan-features-section">
+                        <ul class="plan-features">
+                            <li>${dataLabel} of data, talk and text</li>
+                            <li>5-Year Rate Plan Price Lock</li>
+                            <li>Easy Roam from $5/day</li>
+                        </ul>
+                    </div>
+                    ${planId === PLAN_5G_COMPLETE_EXPLORE ? '<div class="plan-notice">This plan is not eligible for multi-line discount</div>' : ''}
+                    <div class="plan-actions">
+                        <button class="uds-button uds-button--primary" onclick="selectPlan('${planId}', '${dataLabel}', '$${price}')">Add now</button>
+                        <a href="#" class="full-details">Full plan details</a>
+                    </div>
+                `;
+                grid.appendChild(card);
+
+                // Edit view card (id prefixed with edit-plan- so existing code can map back)
+                const editCard = document.createElement('div');
+                editCard.className = 'plan-card';
+                editCard.id = `edit-plan-${cardId}`;
+                editCard.innerHTML = `
+                    <div class="plan-name">${displayName}</div>
+                    <div class="plan-price-data-section">
+                        <div class="plan-price-section">
+                            <div class="original-price" style="display:none;">$${price}/mo.</div>
+                            <div class="current-price"><span class="amount">${price}</span><span class="per-month">/mo.</span></div>
+                        </div>
+                        <div class="data-section">
+                            <div class="data-amount"><span class="amount">${dataLabel.replace(/[^0-9]/g,'')}</span><span class="unit">GB</span></div>
+                            <div class="speed">at 5G+ Speed</div>
+                        </div>
+                    </div>
+                    <div class="discount-badge-container"></div>
+                    <div class="plan-features-section">
+                        <ul class="plan-features">
+                            <li>${dataLabel} of data, talk and text</li>
+                            <li>5-Year Rate Plan Price Lock</li>
+                            <li>Easy Roam from $5/day</li>
+                        </ul>
+                    </div>
+                    ${planId === PLAN_5G_COMPLETE_EXPLORE ? '<div class="plan-notice">This plan is not eligible for multi-line discount</div>' : ''}
+                    <div class="plan-actions">
+                        <button class="uds-button uds-button--primary" onclick="updateSubscriberPlan('${planId}', '${dataLabel}', '$${price}')">Update Plan</button>
+                        <a href="#" class="full-details">Full plan details</a>
+                    </div>
+                `;
+                editGrid.appendChild(editCard);
+            });
         }
 
         function togglePanel(panelId) {

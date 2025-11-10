@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TELUS - Order Summary</title>
+    <script src="constants.js"></script>
+    <script src="styles.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --telus-purple: var(--TELUS_PURPLE);
+            --telus-green: var(--TELUS_GREEN);
+            --telus-dark: var(--TELUS_DARK);
+            --telus-light-gray: var(--TELUS_LIGHT_GRAY);
+            --telus-border: var(--TELUS_BORDER);
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-xxl: 2.5rem;
+            --border-radius-sm: 4px;
+            --border-radius-md: 6px;
+            --border-radius-lg: 8px;
+            --border-radius-xl: 12px;
+        }
+        body { 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            color: var(--telus-dark); 
+            line-height: 1.6; 
+            background: var(--telus-light-gray); 
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            color: var(--telus-purple);
+            font-size: 1.8rem;
+        }
+        .back-btn {
+            padding: 0.6rem 1.5rem;
+            background: white;
+            color: var(--telus-purple);
+            border: 2px solid var(--telus-purple);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .back-btn:hover {
+            background: var(--telus-purple);
+            color: white;
+        }
+        .summary-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .summary-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--telus-border);
+        }
+        .summary-section:last-child {
+            border-bottom: none;
+        }
+        .summary-section h2 {
+            color: var(--telus-purple);
+            margin-bottom: 1rem;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .subscriber-details {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: var(--telus-light-gray);
+            border-radius: 4px;
+        }
+        .total-row {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--telus-border);
+        }
+        .confirm-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin-top: 2rem;
+            background: var(--telus-purple);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+        .confirm-btn:hover {
+            background: #371e54;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Summary</h1>
+            <a href="checkout_subscriber_view.html" class="back-btn">← Back to Subscriber Details</a>
+        </div>
+        
+        <div class="summary-content">
+            <div class="summary-section">
+                <h2>Plan Details</h2>
+                <div id="planDetails"></div>
+            </div>
+            
+            <div class="summary-section">
+                <h2>Subscriber Information</h2>
+                <div id="subscriberDetails"></div>
+            </div>
+            
+            <div class="summary-section">
+                <h2>Order Total</h2>
+                <div id="orderTotal"></div>
+            </div>
+            
+            <button class="confirm-btn" onclick="confirmOrder()">Confirm Order</button>
+        </div>
+    </div>
+
+    <script>
+        let cartData;
+        let subscribers;
+
+        function loadOrderData() {
+            cartData = JSON.parse(localStorage.getItem('cartData'));
+            subscribers = JSON.parse(localStorage.getItem('subscriberData'));
+            
+            if (!cartData || !subscribers) {
+                alert('Order data not found. Please start over.');
+                window.location.href = 'commerce_plan_selection.html';
+                return;
+            }
+            
+            displayPlanDetails();
+            displaySubscriberDetails();
+            displayOrderTotal();
+        }
+
+        function displayPlanDetails() {
+            const planDetailsElement = document.getElementById('planDetails');
+            planDetailsElement.innerHTML = `
+                <div class="summary-row">
+                    <span>Plan Name:</span>
+                    <span>${cartData.planName}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Data:</span>
+                    <span>${cartData.planDetails.name}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Price per Line:</span>
+                    <span>$${cartData.planDetails.price.toFixed(2)}/mo</span>
+                </div>
+                <div class="summary-row">
+                    <span>Number of Lines:</span>
+                    <span>${cartData.quantity}</span>
+                </div>
+            `;
+        }
+
+        function displaySubscriberDetails() {
+            const subscriberDetailsElement = document.getElementById('subscriberDetails');
+            subscriberDetailsElement.innerHTML = subscribers.map((subscriber, index) => `
+                <div class="subscriber-details">
+                    <h3>Subscriber ${index + 1}</h3>
+                    <div class="summary-row">
+                        <span>Name:</span>
+                        <span>${subscriber.firstName} ${subscriber.lastName}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Keep Number:</span>
+                        <span>${subscriber.keepNumber}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>SIM Type:</span>
+                        <span>${subscriber.simType}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Phone Number:</span>
+                        <span>${subscriber.phoneNumber || 'N/A'}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayOrderTotal() {
+            const orderTotalElement = document.getElementById('orderTotal');
+            orderTotalElement.innerHTML = `
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span>$${cartData.subtotal.toFixed(2)}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax (13%):</span>
+                    <span>$${cartData.tax.toFixed(2)}</span>
+                </div>
+                <div class="summary-row total-row">
+                    <span>Total:</span>
+                    <span>$${cartData.total.toFixed(2)}</span>
+                </div>
+            `;
+        }
+
+        function confirmOrder() {
+            // Here you would typically send the order data to a server
+            // For this example, we'll just show an alert and clear the local storage
+            alert('Thank you for your order! Your new plan will be activated soon.');
+            localStorage.removeItem('cartData');
+            localStorage.removeItem('subscriberData');
+            window.location.href = 'commerce_plan_selection.html';
+        }
+
+        window.onload = loadOrderData;
+    </script>
+</body>
+</html>

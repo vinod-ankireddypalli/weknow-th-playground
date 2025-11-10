@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TELUS - Subscriber Details</title>
+    <script src="constants.js"></script>
+    <script src="styles.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --telus-purple: var(--TELUS_PURPLE);
+            --telus-green: var(--TELUS_GREEN);
+            --telus-dark: var(--TELUS_DARK);
+            --telus-light-gray: var(--TELUS_LIGHT_GRAY);
+            --telus-border: var(--TELUS_BORDER);
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-xxl: 2.5rem;
+            --border-radius-sm: 4px;
+            --border-radius-md: 6px;
+            --border-radius-lg: 8px;
+            --border-radius-xl: 12px;
+        }
+        body { 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            color: var(--telus-dark); 
+            line-height: 1.6; 
+            background: var(--telus-light-gray); 
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            color: var(--telus-purple);
+            font-size: 1.8rem;
+        }
+        .back-btn {
+            padding: 0.6rem 1.5rem;
+            background: white;
+            color: var(--telus-purple);
+            border: 2px solid var(--telus-purple);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .back-btn:hover {
+            background: var(--telus-purple);
+            color: white;
+        }
+        .subscriber-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="tel"],
+        .form-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--telus-border);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .sim-options {
+            display: flex;
+            gap: 1rem;
+        }
+        .sim-option {
+            flex: 1;
+            padding: 1rem;
+            border: 1px solid var(--telus-border);
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .sim-option.selected {
+            background-color: var(--telus-purple);
+            color: white;
+        }
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+        }
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .pagination-btn {
+            padding: 0.5rem 1rem;
+            background: var(--telus-purple);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .pagination-btn:hover {
+            background: #371e54;
+        }
+        .pagination-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #subscriberSequenceNumber {
+            width: 50px;
+            text-align: center;
+            padding: 0.5rem;
+            border: 1px solid var(--telus-border);
+            border-radius: 4px;
+        }
+        .continue-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin-top: 2rem;
+            background: var(--telus-purple);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+        .continue-btn:hover {
+            background: #371e54;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Subscriber Details</h1>
+            <a href="checkout_cart_view.html" class="back-btn">← Back to Cart</a>
+        </div>
+        
+        <div class="subscriber-content">
+            <form id="subscriberForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Do you want to keep your current number?</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="keepNumber" value="yes"> Yes</label>
+                        <label><input type="radio" name="keepNumber" value="no"> No</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>SIM Type</label>
+                    <div class="sim-options">
+                        <div class="sim-option" onclick="selectSIM('eSIM')">eSIM</div>
+                        <div class="sim-option" onclick="selectSIM('pSIM')">pSIM</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="phoneNumber">Phone Number</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="Enter or select a number">
+                </div>
+                
+                <div class="pagination">
+                    <div class="pagination-controls">
+                        <button type="button" class="pagination-btn" id="prevBtn" onclick="previousSubscriber()">Previous</button>
+                        <input type="number" id="subscriberSequenceNumber" min="1" onchange="updateSubscriberBySequenceNumber()">
+                        <button type="button" class="pagination-btn" id="nextBtn" onclick="nextSubscriber()">Next</button>
+                    </div>
+                    <span id="paginationInfo"></span>
+                </div>
+                
+                <button type="button" class="continue-btn" onclick="proceedToSummary()">Proceed to Order Summary</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let subscribers = [];
+        let currentSubscriberIndex = 0;
+
+        function loadCartData() {
+            const cartData = JSON.parse(localStorage.getItem('cartData'));
+            if (!cartData) {
+                alert('No cart data found. Please select a plan first.');
+                window.location.href = 'commerce_plan_selection.html';
+                return;
+            }
+            
+            subscribers = Array(cartData.quantity).fill().map((_, index) => ({
+                subscriberSequenceNumber: index + 1,
+                firstName: '',
+                lastName: '',
+                keepNumber: '',
+                simType: '',
+                phoneNumber: '',
+                planName: cartData.planName,
+                planDetails: cartData.planDetails
+            }));
+            
+            updateSubscriberDetails();
+        }
+
+        function updateSubscriberDetails() {
+            const subscriber = subscribers[currentSubscriberIndex];
+            document.getElementById('firstName').value = subscriber.firstName;
+            document.getElementById('lastName').value = subscriber.lastName;
+            document.querySelector(`input[name="keepNumber"][value="${subscriber.keepNumber}"]`)?.checked = true;
+            document.getElementById('phoneNumber').value = subscriber.phoneNumber;
+            document.querySelectorAll('.sim-option').forEach(option => {
+                option.classList.toggle('selected', option.textContent === subscriber.simType);
+            });
+            
+            updatePaginationInfo();
+        }
+
+        function updatePaginationInfo() {
+            const currentSubscriber = subscribers[currentSubscriberIndex];
+            const totalSubscribers = subscribers.length;
+            
+            document.getElementById('paginationInfo').textContent = `Subscriber ${currentSubscriber.subscriberSequenceNumber} of ${totalSubscribers}`;
+            document.getElementById('subscriberSequenceNumber').value = currentSubscriber.subscriberSequenceNumber;
+            
+            document.getElementById('prevBtn').disabled = currentSubscriberIndex === 0;
+            document.getElementById('nextBtn').disabled = currentSubscriberIndex === totalSubscribers - 1;
+        }
+
+        function saveCurrentSubscriberData() {
+            const subscriber = subscribers[currentSubscriberIndex];
+            subscriber.firstName = document.getElementById('firstName').value;
+            subscriber.lastName = document.getElementById('lastName').value;
+            subscriber.keepNumber = document.querySelector('input[name="keepNumber"]:checked')?.value || '';
+            subscriber.phoneNumber = document.getElementById('phoneNumber').value;
+            subscriber.simType = document.querySelector('.sim-option.selected')?.textContent || '';
+        }
+
+        function nextSubscriber() {
+            saveCurrentSubscriberData();
+            if (currentSubscriberIndex < subscribers.length - 1) {
+                currentSubscriberIndex++;
+                updateSubscriberDetails();
+            }
+        }
+
+        function previousSubscriber() {
+            saveCurrentSubscriberData();
+            if (currentSubscriberIndex > 0) {
+                currentSubscriberIndex--;
+                updateSubscriberDetails();
+            }
+        }
+
+        function updateSubscriberBySequenceNumber() {
+            saveCurrentSubscriberData();
+            const sequenceNumber = parseInt(document.getElementById('subscriberSequenceNumber').value);
+            const index = subscribers.findIndex(sub => sub.subscriberSequenceNumber === sequenceNumber);
+            if (index !== -1) {
+                currentSubscriberIndex = index;
+                updateSubscriberDetails();
+            } else {
+                alert('Invalid subscriber sequence number.');
+                document.getElementById('subscriberSequenceNumber').value = subscribers[currentSubscriberIndex].subscriberSequenceNumber;
+            }
+        }
+
+        function selectSIM(type) {
+            document.querySelectorAll('.sim-option').forEach(option => {
+                option.classList.toggle('selected', option.textContent === type);
+            });
+        }
+
+        function proceedToSummary() {
+            saveCurrentSubscriberData();
+            localStorage.setItem('subscriberData', JSON.stringify(subscribers));
+            window.location.href = 'order_summary_view.html';
+        }
+
+        window.onload = loadCartData;
+    </script>
+</body>
+</html>

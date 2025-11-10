@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TELUS - Cart</title>
+    <script src="constants.js"></script>
+    <script src="styles.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --telus-purple: var(--TELUS_PURPLE);
+            --telus-green: var(--TELUS_GREEN);
+            --telus-dark: var(--TELUS_DARK);
+            --telus-light-gray: var(--TELUS_LIGHT_GRAY);
+            --telus-border: var(--TELUS_BORDER);
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-xxl: 2.5rem;
+            --border-radius-sm: 4px;
+            --border-radius-md: 6px;
+            --border-radius-lg: 8px;
+            --border-radius-xl: 12px;
+        }
+        body { 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            color: var(--telus-dark); 
+            line-height: 1.6; 
+            background: var(--telus-light-gray); 
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            color: var(--telus-purple);
+            font-size: 1.8rem;
+        }
+        .back-btn {
+            padding: 0.6rem 1.5rem;
+            background: white;
+            color: var(--telus-purple);
+            border: 2px solid var(--telus-purple);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .back-btn:hover {
+            background: var(--telus-purple);
+            color: white;
+        }
+        .cart-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--telus-border);
+        }
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        .item-details {
+            flex: 1;
+        }
+        .item-name {
+            font-weight: bold;
+            color: var(--telus-purple);
+        }
+        .item-price {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .quantity-btn {
+            padding: 0.5rem 1rem;
+            background: var(--telus-purple);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .quantity-btn:hover {
+            background: #371e54;
+        }
+        .quantity-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+        }
+        .cart-summary {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--telus-border);
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .total-row {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--telus-border);
+        }
+        .checkout-btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            margin-top: 2rem;
+            background: var(--telus-purple);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+        }
+        .checkout-btn:hover {
+            background: #371e54;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Your Cart</h1>
+            <a href="commerce_plan_selection.html" class="back-btn">← Back to Plans</a>
+        </div>
+        
+        <div class="cart-content">
+            <div id="cartItems"></div>
+            
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="subtotal">$0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax (13%)</span>
+                    <span id="tax">$0.00</span>
+                </div>
+                <div class="summary-row total-row">
+                    <span>Total</span>
+                    <span id="total">$0.00</span>
+                </div>
+                
+                <a href="checkout_subscriber_view.html" class="checkout-btn" id="checkoutBtn">Proceed to Subscriber Details</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedPlan = null;
+        let quantity = 1;
+
+        function getUrlParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        function updateQuantity(delta) {
+            const newQuantity = quantity + delta;
+            if (newQuantity >= MIN_LINES && newQuantity <= DEFAULT_MAX_LINES) {
+                quantity = newQuantity;
+                updateCart();
+            }
+        }
+
+        function formatPrice(price) {
+            return `$${price.toFixed(2)}`;
+        }
+
+        function updateCart() {
+            if (!selectedPlan) return;
+
+            const planDetails = PLAN_DETAILS[selectedPlan];
+            const cartItems = document.getElementById('cartItems');
+            
+            cartItems.innerHTML = `
+                <div class="cart-item">
+                    <div class="item-details">
+                        <div class="item-name">${PLAN_NAMES[selectedPlan]}</div>
+                        <div>${planDetails.name} Data</div>
+                        <div class="item-price">${formatPrice(planDetails.price)}/mo</div>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn" onclick="updateQuantity(-1)">-</button>
+                        <span class="quantity-display">${quantity}</span>
+                        <button class="quantity-btn" onclick="updateQuantity(1)">+</button>
+                    </div>
+                </div>
+            `;
+
+            const subtotal = planDetails.price * quantity;
+            const tax = subtotal * 0.13;
+            const total = subtotal + tax;
+
+            document.getElementById('subtotal').textContent = formatPrice(subtotal);
+            document.getElementById('tax').textContent = formatPrice(tax);
+            document.getElementById('total').textContent = formatPrice(total);
+
+            // Save cart data to localStorage
+            const cartData = {
+                planId: selectedPlan,
+                quantity: quantity,
+                planName: PLAN_NAMES[selectedPlan],
+                planDetails: planDetails,
+                subtotal: subtotal,
+                tax: tax,
+                total: total
+            };
+            localStorage.setItem('cartData', JSON.stringify(cartData));
+        }
+
+        function initializeCart() {
+            const planId = getUrlParam('plan');
+            if (planId && PLAN_DETAILS[planId]) {
+                selectedPlan = planId;
+                updateCart();
+            } else {
+                document.querySelector('.cart-content').innerHTML = `
+                    <p>No plan selected. Please return to the plan selection page.</p>
+                    <a href="commerce_plan_selection.html" class="back-btn" style="margin-top: 1rem;">Select a Plan</a>
+                `;
+            }
+        }
+
+        window.onload = initializeCart;
+    </script>
+</body>
+</html>

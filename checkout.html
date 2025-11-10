@@ -4,14 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TELUS - Checkout</title>
+    <script src="constants.js"></script>
+    <script src="styles.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --telus-purple: #4B286D;
-            --telus-green: #66CC00;
-            --telus-dark: #2A2C2E;
-            --telus-light-gray: #F7F7F7;
-            --telus-border: #E0E0E0;
+            /* Colors */
+            --telus-purple: var(--TELUS_PURPLE);
+            --telus-green: var(--TELUS_GREEN);
+            --telus-dark: var(--TELUS_DARK);
+            --telus-light-gray: var(--TELUS_LIGHT_GRAY);
+            --telus-border: var(--TELUS_BORDER);
+
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-xxl: 2.5rem;
+
+            /* Border Radius */
+            --border-radius-sm: 4px;
+            --border-radius-md: 6px;
+            --border-radius-lg: 8px;
+            --border-radius-xl: 12px;
         }
         body { 
             font-family: 'Helvetica Neue', Arial, sans-serif; 
@@ -310,9 +327,9 @@
 
         function getPlanName(planId) {
             const planMap = {
-                '20gb-plan-id': '5G+ Complete',
-                '5g-complete-plan-id': '5G+ Complete Canada-US',
-                'unlimited-plan-id': '5G+ Complete Explore'
+                [PLAN_5G_COMPLETE]: PLAN_DETAILS[PLAN_5G_COMPLETE].name,
+                [PLAN_5G_COMPLETE_CANADA_US]: PLAN_DETAILS[PLAN_5G_COMPLETE_CANADA_US].name,
+                [PLAN_5G_COMPLETE_EXPLORE]: PLAN_DETAILS[PLAN_5G_COMPLETE_EXPLORE].name
             };
             return planMap[planId] || 'Unknown Plan';
         }

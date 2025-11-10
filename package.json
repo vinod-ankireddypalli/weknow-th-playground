@@ -1,0 +1,21 @@
+{
+  "name": "weknow-th-playground",
+  "version": "1.0.0",
+  "description": "This project demonstrates a plan selection interface for TELUS mobile plans, featuring multi-line discounts, subscriber management, and a checkout process.",
+  "main": "checkout_data_flow.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vinod-ankireddypalli/weknow-th-playground.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/vinod-ankireddypalli/weknow-th-playground/issues"
+  },
+  "homepage": "https://github.com/vinod-ankireddypalli/weknow-th-playground#readme"
+}
