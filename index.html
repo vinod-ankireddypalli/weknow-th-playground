@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TELUS - Plan Selection</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --telus-purple: #4B286D;
+            --telus-green: #66CC00;
+            --telus-dark: #2A2C2E;
+            --telus-light-gray: #F7F7F7;
+            --telus-border: #E0E0E0;
+        }
+        .panel-toggle {
+            position: absolute;
+            top: 10px;
+            background: var(--telus-purple);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .left-panel-toggle {
+            left: 10px;
+        }
+        .right-panel-toggle {
+            right: 10px;
+        }
+        .config-panel.collapsed {
+            transform: translateX(-100%);
+        }
+        .output-panel.collapsed {
+            transform: translateX(100%);
+        }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; color: var(--telus-dark); line-height: 1.6; background: var(--telus-light-gray); }
+        .layout { 
+            display: flex; 
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+        }
+        .config-panel { 
+            width: 350px; 
+            background: white; 
+            border-right: 2px solid var(--telus-border); 
+            padding: 2rem; 
+            overflow-y: auto;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            transition: transform 0.3s ease-in-out;
+        }
+        .config-panel h2 { color: var(--telus-purple); margin-bottom: 1.5rem; font-size: 1.3rem; border-bottom: 2px solid var(--telus-purple); padding-bottom: 0.5rem; }
+        .config-section { 
+            margin-bottom: 2rem; 
+            border: 1px solid var(--telus-border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .config-section h3 { 
+            color: var(--telus-purple); 
+            font-size: 1rem; 
+            margin: 0;
+            padding: 1rem;
+            background: var(--telus-light-gray);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+        }
+        .config-section h3::before { 
+            content: "⚙️"; 
+            margin-right: 0.5rem; 
+        }
+        .config-section h3::after { 
+            content: "▼";
+            font-size: 0.8rem;
+            transition: transform 0.3s ease;
+        }
+        .config-section.collapsed h3::after {
+            transform: rotate(-90deg);
+        }
+        .config-section-content {
+            padding: 1rem;
+            border-top: 1px solid var(--telus-border);
+            transition: max-height 0.3s ease-out;
+            max-height: 1000px;
+            overflow: hidden;
+        }
+        .config-section.collapsed .config-section-content {
+            max-height: 0;
+            padding: 0;
+            border-top: none;
+        }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.85rem; }
+.form-group input, .form-group select { 
+            width: 100%; 
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--telus-border); 
+            border-radius: 4px;
+            font-size: 1rem; 
+            line-height: 1.5;
+            transition: all 0.2s ease;
+            background-color: white;
+            color: var(--telus-dark);
+        }
+        .form-group input:hover, .form-group select:hover {
+            border-color: var(--telus-purple);
+        }
+        .form-group input:focus, .form-group select:focus { 
+            outline: none; 
+            border-color: var(--telus-purple); 
+            box-shadow: 0 0 0 2px rgba(75, 40, 109, 0.2);
+        }
+        .form-group input::placeholder, .form-group select::placeholder {
+            color: #71757B;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--telus-dark);
+        }
+        .apply-btn { width: 100%; padding: 0.9rem; background: var(--telus-purple); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 1rem; }
+        .apply-btn:hover { background: #5D3580; transform: translateY(-2px); }
+        .event-section { background: #FFF9E6; border: 2px solid #FFD700; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .event-section h3::before { content: "⚡"; }
+        .event-trigger-btn { width: 100%; padding: 0.8rem; background: #FFD700; color: var(--telus-dark); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 0.5rem; }
+        .json-preview { background: #f4f4f4; padding: 1rem; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 0.75rem; max-height: 200px; overflow-y: auto; border: 1px solid var(--telus-border); }
+        .main-content { 
+            flex: 1; 
+            padding: 2rem; 
+            overflow-y: auto;
+            margin-left: 0;
+            margin-right: 0;
+            height: 100vh;
+            transition: margin 0.3s ease-in-out;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+.line-counter-section { 
+            background: white; 
+            border-radius: 8px; 
+            padding: 2rem; 
+            margin-bottom: 2rem; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: center; 
+            border: none;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .line-counter-section h3 {
+            font-size: 1.75rem;
+            color: var(--telus-purple);
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+            line-height: 1.2;
+        }
+        .line-counter-section p {
+            color: var(--telus-dark);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+.soe-quantity-selector { 
+            display: inline-flex; 
+            align-items: center; 
+            border: 2px solid var(--telus-purple); 
+            border-radius: 8px; 
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+.icon-button { 
+            width: 56px; 
+            height: 56px; 
+            border: none; 
+            background: var(--telus-purple); 
+            color: white; 
+            font-size: 2rem; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            border-radius: 0;
+        }
+        .icon-button:hover { 
+            background: #371e54;
+        }
+        .icon-button:disabled { 
+            opacity: 0.4; 
+            cursor: not-allowed; 
+            background: #f7f7f7; 
+            color: #71757B;
+        }
+        .icon-button .icon { 
+            font-size: 1.5rem; 
+            line-height: 1;
+            font-weight: 700;
+        }
+        .quantity-display { 
+            padding: 0 1.5rem;
+            min-width: 100px;
+            text-align: center;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-left: 1px solid var(--telus-border);
+            border-right: 1px solid var(--telus-border);
+        }
+        .quantity-display span { 
+            font-size: 1.125rem; 
+            color: var(--telus-dark);
+            font-weight: 700;
+        }
+        .plans-section h2 { display: none; }
+.plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.plan-card { 
+            background: white; 
+            border-radius: 8px; 
+            padding: 1.5rem; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            border: 1px solid var(--telus-border); 
+            position: relative; 
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 320px;
+        }
+        .plan-card:hover { 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .plan-card.current-plan {
+            border-color: var(--telus-purple);
+            box-shadow: 0 0 0 2px rgba(75, 40, 109, 0.2);
+        }
+        .plan-name { 
+            font-size: 1.25rem; 
+            color: var(--telus-purple); 
+            margin-bottom: 1rem; 
+            font-weight: 700;
+            text-align: left;
+        }
+.plan-price-data-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+        .plan-price-section {
+            text-align: left;
+        }
+        .original-price { 
+            color: var(--telus-dark); 
+            text-decoration: line-through; 
+            font-size: 0.875rem; 
+            margin-bottom: 0.25rem;
+            font-weight: 400;
+        }
+        .current-price { 
+            font-size: 2rem; 
+            color: var(--telus-dark); 
+            font-weight: 700;
+            display: flex;
+            align-items: baseline;
+        }
+        .current-price .amount {
+            margin-right: 0.25rem;
+        }
+        .per-month { 
+            color: var(--telus-dark); 
+            font-size: 1rem;
+            font-weight: 400;
+        }
+        .data-section {
+            text-align: right;
+        }
+        .data-amount { 
+            font-size: 2.5rem; 
+            color: var(--telus-purple); 
+            font-weight: 700;
+            display: flex;
+            align-items: baseline;
+            justify-content: flex-end;
+        }
+        .data-amount .amount {
+            margin-right: 0.25rem;
+        }
+        .data-amount .unit { 
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+        .speed { 
+            color: var(--telus-dark); 
+            font-size: 0.875rem;
+            font-weight: 400;
+        }
+        .current-plan-badge { position: absolute; top: -12px; left: 20px; background: var(--telus-purple); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
+        .plan-data { font-size: 2rem; font-weight: 400; color: var(--telus-purple); margin-bottom: 0.5rem; }
+        .plan-price { font-size: 1.5rem; margin-bottom: 1rem; font-weight: 400; color: #2A2C2E; }
+        .plan-features-section {
+            margin-bottom: 1rem;
+        }
+        .plan-notice {
+            background: #FFF3CD;
+            border: 1px solid #FFEEBA;
+            color: #856404;
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        .plan-notice::before {
+            content: "ℹ️";
+            font-size: 1rem;
+        }
+        .discount-badge-container {
+            margin: 1rem 0;
+        }
+        .discount-badge {
+            display: block;
+            padding: 0.75rem;
+            background-color: var(--telus-green);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .plan-features-section h4 {
+            font-size: 1.1rem;
+            color: var(--telus-purple);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .plan-features { 
+            list-style: none; 
+            margin: 0; 
+            padding: 0;
+        }
+        .plan-features li { 
+            padding: 0.5rem 0; 
+            padding-left: 1.75rem; 
+            position: relative; 
+            color: var(--telus-dark); 
+            font-size: 0.9rem; 
+            line-height: 1.5; 
+        }
+        .plan-features li:before { 
+            content: "✓"; 
+            position: absolute; 
+            left: 0; 
+            color: var(--telus-green); 
+            font-weight: 700; 
+            font-size: 1.1rem; 
+        }
+        .plan-actions {
+            margin-top: auto;
+        }
+        .full-details { 
+            display: block; 
+            text-align: center; 
+            color: var(--telus-purple); 
+            text-decoration: none; 
+            font-size: 0.9rem; 
+            margin-top: 1rem; 
+            font-weight: 600;
+        }
+.btn { 
+            padding: 0.75rem 1.5rem; 
+            border: none; 
+            border-radius: 4px; 
+            font-size: 1rem; 
+            font-weight: 700; 
+            cursor: pointer; 
+            width: 100%; 
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+        .btn-primary { 
+            background-color: var(--telus-purple); 
+            color: white; 
+        }
+        .btn-primary:hover { 
+            background-color: #371e54; 
+        }
+        .btn-secondary { 
+            background-color: transparent; 
+            color: var(--telus-purple);
+            border: 2px solid var(--telus-purple);
+        }
+        .btn-secondary:hover { 
+            background-color: rgba(75, 40, 109, 0.1);
+        }
+        .subscriber-review-section { background: white; border-radius: 12px; padding: 2.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--telus-border); }
+        .review-header h2 { color: var(--telus-purple); font-size: 1.8rem; }
+        .back-btn { padding: 0.6rem 1.5rem; background: white; color: var(--telus-purple); border: 2px solid var(--telus-purple); border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .back-btn:hover { background: var(--telus-purple); color: white; }
+        .subscriber-row { 
+            background: var(--telus-light-gray); 
+            border-radius: 8px; 
+            padding: 1.5rem; 
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .subscriber-row:hover {
+            background: #f0f0f0;
+        }
+        .subscriber-row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .subscriber-row-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            margin-top: 0;
+            opacity: 0;
+        }
+        .subscriber-row.expanded .subscriber-row-content {
+            max-height: 500px;
+            margin-top: 1rem;
+            opacity: 1;
+            border-top: 1px solid var(--telus-border);
+            padding-top: 1rem;
+        }
+        .subscriber-row-summary {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .subscriber-row-summary .subscriber-name {
+            color: var(--telus-dark);
+            font-weight: 600;
+        }
+        .subscriber-row .expand-icon {
+            font-size: 1.2rem;
+            color: var(--telus-purple);
+            transition: transform 0.3s ease;
+        }
+        .subscriber-row.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+        .subscriber-details { flex: 1; }
+        .subscriber-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.8rem; }
+        .subscriber-badge { background: var(--telus-purple); color: white; padding: 0.3rem 0.8rem; border-radius: 20px; font-weight: bold; font-size: 0.85rem; }
+        .subscriber-name, .subscriber-plan, .subscriber-price, .subscriber-discount { 
+            color: var(--telus-dark);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .subscriber-discount {
+            color: var(--telus-green);
+            margin-left: 0.5rem;
+        }
+        .subscriber-info { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 1rem; 
+            font-size: 0.9rem; 
+            color: #666; 
+        }
+        .subscriber-info > div:first-child {
+            display: flex;
+            gap: 2rem;
+        }
+        .subscriber-details-info {
+            background: white;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        .subscriber-details-info span {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .subscriber-details-info span::before {
+            content: attr(data-label);
+            font-size: 0.75rem;
+            color: var(--telus-purple);
+            font-weight: 600;
+        }
+        .edit-btn, .delete-btn { 
+            padding: 0.6rem;
+            background: white;
+            color: var(--telus-purple);
+            border: 2px solid var(--telus-purple);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+        }
+        .edit-btn:hover, .delete-btn:hover { 
+            background: var(--telus-purple);
+            color: white;
+        }
+        .delete-btn { 
+            padding: 0.6rem;
+            background: white;
+            color: #dc3545;
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+        .delete-btn:hover { 
+            background: #dc3545;
+            color: white;
+        }
+        .action-buttons { display: flex; gap: 1rem; margin-top: 2rem; padding-top: 2rem; border-top: 2px solid var(--telus-border); }
+        .btn-outline { background: white; color: var(--telus-purple); border: 2px solid var(--telus-purple); }
+        .btn-outline:hover { background: var(--telus-purple); color: white; }
+        .edit-plan-section { background: white; border-radius: 12px; padding: 2.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .editing-info { background: #E8F4FD; border-left: 4px solid var(--telus-purple); padding: 1rem 1.5rem; margin-bottom: 2rem; border-radius: 4px; }
+        .output-panel { 
+            width: 500px; 
+            background: white; 
+            border-left: 2px solid var(--telus-border); 
+            padding: 2rem; 
+            overflow-y: auto;
+            height: 100vh;
+            position: fixed;
+            right: 0;
+            top: 0;
+            transition: transform 0.3s ease-in-out;
+        }
+        .output-panel h2 { color: var(--telus-purple); margin-bottom: 1.5rem; font-size: 1.3rem; border-bottom: 2px solid var(--telus-green); padding-bottom: 0.5rem; }
+        .output-panel h2::before { content: "📤"; margin-right: 0.5rem; }
+        .plan-info { background: var(--telus-light-gray); padding: 1rem; border-radius: 6px; margin-bottom: 1.5rem; }
+        .view-toggle { display: flex; gap: 0.5rem; margin-bottom: 1rem; background: var(--telus-light-gray); padding: 0.3rem; border-radius: 8px; }
+        .view-toggle button { flex: 1; padding: 0.6rem; border: none; background: transparent; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        .view-toggle button.active { background: white; color: var(--telus-purple); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .table-container { overflow-x: auto; border-radius: 8px; border: 1px solid var(--telus-border); }
+        .subscribers-table { width: 100%; border-collapse: collapse; background: white; font-size: 0.85rem; }
+        .subscribers-table thead { background: var(--telus-purple); color: white; }
+        .subscribers-table th { padding: 0.8rem 0.6rem; text-align: left; font-weight: 600; }
+        .subscribers-table td { padding: 0.8rem 0.6rem; border-bottom: 1px solid var(--telus-border); }
+        .subscribers-table tbody tr.active-subscriber { background: #E8F4FD !important; border-left: 4px solid var(--telus-purple); }
+        .subscriber-number { font-weight: bold; color: var(--telus-purple); }
+        .json-view { background: #f4f4f4; padding: 1.5rem; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.8rem; white-space: pre-wrap; max-height: 500px; overflow-y: auto; }
+        .copy-btn { width: 100%; padding: 0.8rem; background: var(--telus-green); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 1rem; }
+        .info-badge { background: var(--telus-light-gray); padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.75rem; color: #666; margin-top: 0.3rem; }
+        .max-subscribers-warning { background: #FFF3CD; color: #856404; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #FFEEBA; }
+        .error-message, .success-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            animation: fadeInOut 5s ease-in-out;
+        }
+        .error-message {
+            background-color: #ff4444;
+        }
+        .success-message {
+            background-color: #00C851;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-20px); }
+            5% { opacity: 1; transform: translateY(0); }
+            95% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <button class="panel-toggle left-panel-toggle" onclick="togglePanel('config-panel')">☰</button>
+        <button class="panel-toggle right-panel-toggle" onclick="togglePanel('output-panel')">☰</button>
+        <aside class="config-panel collapsed" id="config-panel">
+            <h2>Configuration</h2>
+            <div class="config-section" id="subscriberInfoSection">
+                <h3 onclick="toggleSection('subscriberInfoSection')">Subscriber Info</h3>
+                <div class="config-section-content">
+                    <div class="form-group">
+                    <label>Province Code</label>
+                    <select id="provinceCode">
+                        <option value="ON">ON - Ontario</option>
+                        <option value="BC">BC - British Columbia</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>City</label>
+                    <input type="text" id="city" value="TORONTO">
+                </div>
+                <div class="form-group">
+                    <label>Market Segment ID</label>
+                    <input type="text" id="marketSegmentId" value="bb08e53d-0f4c-4486-bd0d-5c039a1809ac">
+                </div>
+                <div class="form-group">
+                    <label>Product Type ID</label>
+                    <input type="text" id="productTypeId" value="qweqwrwr-0f4c-4486-bd0d-5c039a1809ac">
+                    </div>
+                </div>
+            </div>
+            <div class="config-section">
+                <h3>Transaction Info</h3>
+                <div class="form-group">
+                    <label>Default Number of People</label>
+                    <input type="number" id="defaultPeople" value="4" min="1" max="10">
+                    <span class="info-badge">Sets initial counter</span>
+                </div>
+                <div class="form-group">
+                    <label>Max Subscribers Allowed</label>
+                    <input type="number" id="maxSubscribers" value="6" min="1" max="10">
+                    <span class="info-badge">Sets counter max</span>
+                </div>
+            </div>
+            <button class="apply-btn" onclick="applyConfiguration()">Apply Configuration</button>
+            <div class="event-section">
+                <h3>Event Trigger</h3>
+                <div class="form-group">
+                    <label>Set Current Active Subscriber</label>
+                    <input type="number" id="activeSubscriber" min="1" placeholder="Enter sequence number">
+                    <span class="info-badge">Triggers edit mode</span>
+                </div>
+                <button class="event-trigger-btn" onclick="triggerSetActiveSubscriber()">⚡ Trigger Event</button>
+            </div>
+            <div class="event-section">
+                <h3>Set Subscriber Details</h3>
+                <div id="subscriberDetailsForm">
+                    <!-- Subscriber details form will be dynamically generated here -->
+                </div>
+                <button class="event-trigger-btn" onclick="addSubscriberForm()">+ Add Another Subscriber</button>
+                <button class="event-trigger-btn" onclick="triggerSetMultipleSubscriberDetails()">⚡ Update Subscribers</button>
+            </div>
+            <div class="config-section">
+                <h3>Input JSON</h3>
+                <div class="json-preview" id="jsonPreview"></div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="container">
+                <div id="planSelectionView">
+                    <section class="line-counter-section">
+                        <h3>Select number of lines</h3>
+                        <p id="lineCounterMessage">How many lines would you like to add to your plan?</p>
+                        <div class="soe-quantity-selector" data-testid="mfe-rate-plan-soe-quantity-selector">
+                            <button class="icon-button" data-testid="mfe-rate-plan-soe-quantity-selector-remove-button" onclick="decrementLines()">
+                                <span class="icon">−</span>
+                            </button>
+                            <div class="quantity-display">
+                                <span data-testid="mfe-rate-plan-num-of-people-text" id="lineCountDisplay">1 line</span>
+                            </div>
+                            <button class="icon-button" data-testid="mfe-rate-plan-soe-quantity-selector-add-button" onclick="incrementLines()">
+                                <span class="icon">+</span>
+                            </button>
+                        </div>
+                    </section>
+                    <section class="plans-section">
+                        <h2 id="plansSectionTitle">Choose Your Perfect Plan</h2>
+                        <div class="plans-grid">
+                            <div class="plan-card" id="plan-5g-complete">
+                                <div class="plan-name">5G+ Complete</div>
+                                <div class="plan-price-data-section">
+                                    <div class="plan-price-section">
+                                        <div class="original-price">$85/mo.</div>
+                                        <div class="current-price"><span class="amount">85</span><span class="per-month">/mo.</span></div>
+                                    </div>
+                                    <div class="data-section">
+                                        <div class="data-amount"><span class="amount">100</span><span class="unit">GB</span></div>
+                                        <div class="speed">at 5G+ Speed</div>
+                                    </div>
+                                </div>
+                                <div class="discount-badge-container"></div>
+                                <div class="plan-features-section">
+                                    <ul class="plan-features">
+                                        <li>100GB of nationwide data, talk and text</li>
+                                        <li>5-Year Rate Plan Price Lock</li>
+                                        <li>Easy Roam from $5/day</li>
+                                    </ul>
+                                </div>
+                                <div class="plan-actions">
+                                    <button class="btn btn-primary" onclick="selectPlan('20gb-plan-id', '100GB', '$85')">Add now</button>
+                                    <a href="#" class="full-details">Full plan details</a>
+                                </div>
+                            </div>
+                            <div class="plan-card" id="plan-5g-complete-canada-us">
+                                <div class="plan-name">5G+ Complete Canada-US</div>
+                                <div class="plan-price-data-section">
+                                    <div class="plan-price-section">
+                                        <div class="original-price">$95/mo.</div>
+                                        <div class="current-price"><span class="amount">95</span><span class="per-month">/mo.</span></div>
+                                    </div>
+                                    <div class="data-section">
+                                        <div class="data-amount"><span class="amount">175</span><span class="unit">GB</span></div>
+                                        <div class="speed">at 5G+ Speed</div>
+                                    </div>
+                                </div>
+                                <div class="discount-badge-container"></div>
+                                <div class="plan-features-section">
+                                    <ul class="plan-features">
+                                        <li>175GB of data, talk and text in Canada and the US</li>
+                                        <li>5-Year Rate Plan Price Lock</li>
+                                        <li>Easy Roam from $5/day</li>
+                                    </ul>
+                                </div>
+                                <div class="plan-actions">
+                                    <button class="btn btn-primary" onclick="selectPlan('5g-complete-plan-id', '175GB', '$95')">Add now</button>
+                                    <a href="#" class="full-details">Full plan details</a>
+                                </div>
+                            </div>
+                            <div class="plan-card" id="plan-5g-complete-explore">
+                                <div class="plan-name">5G+ Complete Explore</div>
+                                <div class="plan-price-data-section">
+                                    <div class="plan-price-section">
+                                        <div class="original-price" style="display: none;">$115/mo.</div>
+                                        <div class="current-price"><span class="amount">115</span><span class="per-month">/mo.</span></div>
+                                    </div>
+                                    <div class="data-section">
+                                        <div class="data-amount"><span class="amount">250</span><span class="unit">GB</span></div>
+                                        <div class="speed">at 5G+ Speed</div>
+                                    </div>
+                                </div>
+                                <div class="discount-badge-container"></div>
+                                <div class="plan-features-section">
+                                    <ul class="plan-features">
+                                        <li>250GB of data, talk & text in Canada and 68 international destinations</li>
+                                        <li>5-Year Rate Plan Price Lock</li>
+                                        <li>Easy Roam from $5/day</li>
+                                    </ul>
+                                </div>
+                                <div class="plan-notice">
+                                    This plan is not eligible for multi-line discount
+                                </div>
+                                <div class="plan-actions">
+                                    <button class="btn btn-primary" onclick="selectPlan('unlimited-plan-id', '250GB', '$115')">Add now</button>
+                                    <a href="#" class="full-details">Full plan details</a>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="subscriberReviewView" style="display: none;">
+                    <section class="subscriber-review-section">
+                        <div class="review-header">
+                            <h2>Review Your Selection</h2>
+                            <button class="back-btn" onclick="backToPlans()">← Back to Plans</button>
+                        </div>
+                        <div id="maxSubscribersWarning" class="max-subscribers-warning" style="display: none;"></div>
+                        <div id="subscribersList"></div>
+                        <div id="subscriberForm" class="subscriber-form" style="display: none;">
+                            <h3>Add Subscriber Details</h3>
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" id="subscriberFullName" placeholder="Enter full name">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number</label>
+                                <input type="number" id="subscriberPhoneNumber" placeholder="Enter phone number">
+                            </div>
+                            <div class="form-group">
+                                <label>SIM Type</label>
+                                <select id="subscriberSimType">
+                                    <option value="ESIM">ESIM</option>
+                                    <option value="PHYSICAL">Physical SIM</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveSubscriberDetails()">Save Details</button>
+                            <button class="btn btn-secondary" onclick="cancelSubscriberDetails()">Cancel</button>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="btn btn-outline" onclick="addNewPlan()">+ Add New Plan</button>
+                            <button class="btn btn-secondary" onclick="proceedToCheckout()">Proceed to Checkout →</button>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="editSubscriberView" style="display: none;">
+                    <section class="edit-plan-section">
+                        <div class="review-header">
+                            <h2>Edit Plan Selection</h2>
+                            <button class="back-btn" onclick="cancelEdit()">← Cancel</button>
+                        </div>
+                        <div class="editing-info">
+                            <p id="editingSubscriberInfo">Editing plan</p>
+                        </div>
+                        <section class="plans-section">
+                            <h2 id="plansSectionTitle">Choose Your Perfect Plan</h2>
+                            <div class="plans-grid">
+<div class="plan-card" id="edit-plan-5g-complete">
+                                    <div class="current-plan-badge" style="display: none;">Current selected plan</div>
+                                    <div class="plan-name">5G+ Complete</div>
+                                    <div class="plan-price-data-section">
+                                        <div class="plan-price-section">
+                                            <div class="original-price">$85/mo.</div>
+                                            <div class="current-price"><span class="amount">85</span><span class="per-month">/mo.</span></div>
+                                        </div>
+                                        <div class="data-section">
+                                            <div class="data-amount"><span class="amount">100</span><span class="unit">GB</span></div>
+                                            <div class="speed">at 5G+ Speed</div>
+                                        </div>
+                                    </div>
+                                    <div class="discount-badge-container"></div>
+                                    <div class="plan-features-section">
+                                        <ul class="plan-features">
+                                            <li>100GB of nationwide data, talk and text</li>
+                                            <li>5-Year Rate Plan Price Lock</li>
+                                            <li>Easy Roam from $5/day</li>
+                                        </ul>
+                                    </div>
+                                    <div class="plan-actions">
+                                        <button class="btn btn-primary" onclick="updateSubscriberPlan('20gb-plan-id', '100GB', '$85')">Update Plan</button>
+                                        <a href="#" class="full-details">Full plan details</a>
+                                    </div>
+                                </div>
+<div class="plan-card" id="edit-plan-5g-complete-canada-us">
+                                    <div class="current-plan-badge" style="display: none;">Current selected plan</div>
+                                    <div class="plan-name">5G+ Complete Canada-US</div>
+                                    <div class="plan-price-data-section">
+                                        <div class="plan-price-section">
+                                            <div class="original-price">$95/mo.</div>
+                                            <div class="current-price"><span class="amount">95</span><span class="per-month">/mo.</span></div>
+                                        </div>
+                                        <div class="data-section">
+                                            <div class="data-amount"><span class="amount">175</span><span class="unit">GB</span></div>
+                                            <div class="speed">at 5G+ Speed</div>
+                                        </div>
+                                    </div>
+                                    <div class="discount-badge-container"></div>
+                                    <div class="plan-features-section">
+                                        <ul class="plan-features">
+                                            <li>175GB of data, talk and text in Canada and the US</li>
+                                            <li>5-Year Rate Plan Price Lock</li>
+                                            <li>Easy Roam from $5/day</li>
+                                        </ul>
+                                    </div>
+                                    <div class="plan-actions">
+                                        <button class="btn btn-primary" onclick="updateSubscriberPlan('5g-complete-plan-id', '175GB', '$95')">Update Plan</button>
+                                        <a href="#" class="full-details">Full plan details</a>
+                                    </div>
+                                </div>
+<div class="plan-card" id="edit-plan-5g-complete-explore">
+                                    <div class="current-plan-badge" style="display: none;">Current selected plan</div>
+                                    <div class="plan-name">5G+ Complete Explore</div>
+                                    <div class="plan-price-data-section">
+                                        <div class="plan-price-section">
+                                            <div class="original-price" style="display: none;">$115/mo.</div>
+                                            <div class="current-price"><span class="amount">115</span><span class="per-month">/mo.</span></div>
+                                        </div>
+                                        <div class="data-section">
+                                            <div class="data-amount"><span class="amount">250</span><span class="unit">GB</span></div>
+                                            <div class="speed">at 5G+ Speed</div>
+                                        </div>
+                                    </div>
+                                    <div class="discount-badge-container"></div>
+                                    <div class="plan-features-section">
+                                        <ul class="plan-features">
+                                            <li>250GB of data, talk & text in Canada and 68 international destinations</li>
+                                            <li>5-Year Rate Plan Price Lock</li>
+                                            <li>Easy Roam from $5/day</li>
+                                        </ul>
+                                    </div>
+                                    <div class="plan-notice">
+                                        This plan is not eligible for multi-line discount
+                                    </div>
+                                    <div class="plan-actions">
+                                        <button class="btn btn-primary" onclick="updateSubscriberPlan('unlimited-plan-id', '250GB', '$115')">Update Plan</button>
+                                        <a href="#" class="full-details">Full plan details</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <aside class="output-panel collapsed" id="output-panel">
+            <h2>Output</h2>
+            <div id="outputSection" style="display: none;">
+                <div class="plan-info">
+                    <h3 id="selectedPlanName">-</h3>
+                    <p id="selectedPlanDetails">-</p>
+                </div>
+                <div class="view-toggle">
+                    <button id="tableViewBtn" class="active" onclick="switchView('table')">📊 Table</button>
+                    <button id="jsonViewBtn" onclick="switchView('json')">{ } JSON</button>
+                </div>
+                <div id="tableView" class="table-container">
+                    <table class="subscribers-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Plan</th>
+                                <th>Business Group ID</th>
+                                <th>Active</th>
+                            </tr>
+                        </thead>
+                        <tbody id="subscribersTableBody"></tbody>
+                    </table>
+                </div>
+                <div id="jsonView" class="json-view" style="display: none;"></div>
+                <button class="copy-btn" onclick="copyToClipboard()">📋 Copy JSON</button>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        let currentLineCount = 1, maxLines = 6, editingSubscriberIndex = null;
+        let isAddingNewPlan = false;
+        let effectiveMaxLines = 6;
+        const MIN_LINES = 1;
+const planMap = {
+            '20gb-plan-id': { name: '100GB', price: '$85', cardId: 'plan-5g-complete' },
+            '5g-complete-plan-id': { name: '175GB', price: '$95', cardId: 'plan-5g-complete-canada-us' },
+            'unlimited-plan-id': { name: '250GB', price: '$115', cardId: 'plan-5g-complete-explore' }
+        };
+        let config = {
+            uiSubscribers: [{ selectedProvinceCode: "ON", selectedCity: "TORONTO", marketSegmentId: "bb08e53d-0f4c-4486-bd0d-5c039a1809ac", selectedProductTypeId: "qweqwrwr-0f4c-4486-bd0d-5c039a1809ac" }],
+            mobilityTransactionInfo: { defaultNumberOfPeople: 4, mobilityAccount: { maxSubscriberAllowed: 6 } }
+        };
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        let currentOutput = null;
+
+        function init() { 
+            updateJsonPreview(); 
+            applyConfiguration(); 
+            displayShareableLink();
+        }
+
+        function displayShareableLink() {
+            const protocol = window.location.protocol;
+            const hostname = window.location.hostname;
+            const port = window.location.port;
+            const shareableLink = `${protocol}//${hostname}:${port}`;
+            const linkElement = document.createElement('div');
+            linkElement.innerHTML = `<p>Shareable link: <a href="${shareableLink}" target="_blank">${shareableLink}</a></p>`;
+            document.body.insertBefore(linkElement, document.body.firstChild);
+        }
+        function applyConfiguration() {
+            config.uiSubscribers[0].selectedProvinceCode = document.getElementById('provinceCode').value;
+            config.uiSubscribers[0].selectedCity = document.getElementById('city').value;
+            config.uiSubscribers[0].marketSegmentId = document.getElementById('marketSegmentId').value;
+            config.uiSubscribers[0].selectedProductTypeId = document.getElementById('productTypeId').value;
+            config.mobilityTransactionInfo.defaultNumberOfPeople = parseInt(document.getElementById('defaultPeople').value);
+            config.mobilityTransactionInfo.mobilityAccount.maxSubscriberAllowed = parseInt(document.getElementById('maxSubscribers').value);
+            currentLineCount = config.mobilityTransactionInfo.defaultNumberOfPeople;
+            maxLines = config.mobilityTransactionInfo.mobilityAccount.maxSubscriberAllowed;
+            effectiveMaxLines = maxLines;
+            updateLineDisplay(); updateJsonPreview();
+        }
+        function updateJsonPreview() { document.getElementById('jsonPreview').textContent = JSON.stringify(config, null, 2); }
+        function incrementLines() { if (currentLineCount < effectiveMaxLines) { currentLineCount++; updateLineDisplay(); } }
+        function decrementLines() { if (currentLineCount > MIN_LINES) { currentLineCount--; updateLineDisplay(); } }
+        function updateLineDisplay() {
+            document.getElementById('lineCountDisplay').textContent = `${currentLineCount} ${currentLineCount === 1 ? 'line' : 'lines'}`;
+            document.querySelector('[data-testid="mfe-rate-plan-soe-quantity-selector-remove-button"]').disabled = currentLineCount === MIN_LINES;
+            document.querySelector('[data-testid="mfe-rate-plan-soe-quantity-selector-add-button"]').disabled = currentLineCount >= effectiveMaxLines;
+            updatePlanCTAs();
+            updateSavings();
+            updateLineCounterMessage();
+        }
+
+        function updateLineCounterMessage() {
+            const messageElement = document.getElementById('lineCounterMessage');
+            const existingSubscribers = currentOutput ? currentOutput.uiSubscribers.length : 0;
+            if (existingSubscribers > 0) {
+                messageElement.textContent = `You have ${existingSubscribers} subscriber${existingSubscribers > 1 ? 's' : ''} in your plan. How many additional lines would you like to add?`;
+            } else {
+                messageElement.textContent = 'How many lines would you like to add to your plan?';
+            }
+        }
+
+function calculateDiscount(numLines) {
+            if (numLines < 2) return 0;
+            if (numLines === 2) return 5;
+            if (numLines === 3) return 7.5;
+            return 10; // 4 or more lines
+        }
+
+        function getTotalSubscribers() {
+            return currentOutput ? currentOutput.uiSubscribers.length : 0;
+        }
+
+function updateMultiLineDiscount() {
+            const totalSubscribers = getTotalSubscribers() + currentLineCount;
+            const discountPerLine = calculateDiscount(totalSubscribers);
+            const isMultiLineDiscount = totalSubscribers > 1;
+
+            document.querySelectorAll('.plan-card').forEach(card => {
+                const priceSection = card.querySelector('.plan-price-section');
+                const currentPriceElement = card.querySelector('.current-price .amount');
+                const originalPriceElement = card.querySelector('.original-price');
+                const discountBadgeContainer = card.querySelector('.discount-badge-container');
+                
+                const planId = card.id.replace('plan-', '');
+                const originalPrice = planId === '5g-complete' ? 85 :
+                                      planId === '5g-complete-canada-us' ? 95 : 115;
+
+                // Clear existing discount badge
+                discountBadgeContainer.innerHTML = '';
+
+                if (card.id === 'plan-5g-complete-explore') {
+                    // Don't apply discount for the explore plan
+                    currentPriceElement.textContent = originalPrice;
+                    originalPriceElement.style.display = 'none';
+                } else if (isMultiLineDiscount) {
+                    const discountedPrice = originalPrice - discountPerLine;
+                    
+                    // Update the current price
+                    currentPriceElement.textContent = discountedPrice;
+                    
+                    // Show original price with strikethrough
+                    originalPriceElement.style.display = 'block';
+                    originalPriceElement.textContent = `$${originalPrice}/mo.`;
+                    
+                    // Add discount badge
+                    const discountHTML = `
+                        <div class="discount-badge">
+                            Save $${discountPerLine}/mo per line
+                        </div>
+                    `;
+                    discountBadgeContainer.innerHTML = discountHTML;
+                } else {
+                    // Reset to original price if no multi-line discount
+                    currentPriceElement.textContent = originalPrice;
+                    originalPriceElement.style.display = 'none';
+                }
+            });
+        }
+
+        function updateSavings() {
+            updateMultiLineDiscount();
+        }
+
+        function showSubscriberReview(subscribers) {
+            document.getElementById('planSelectionView').style.display = 'none';
+            document.getElementById('subscriberReviewView').style.display = 'block';
+            document.getElementById('editSubscriberView').style.display = 'none';
+            
+            // Hide "Add New Plan" button and show warning if max subscribers reached
+            const addNewPlanBtn = document.querySelector('.btn-outline');
+            const warningMessage = document.getElementById('maxSubscribersWarning');
+            if (subscribers.length >= maxLines) {
+                addNewPlanBtn.style.display = 'none';
+                warningMessage.style.display = 'block';
+                warningMessage.textContent = `Maximum number of subscribers (${maxLines}) reached.`;
+            } else {
+                addNewPlanBtn.style.display = 'block';
+                warningMessage.style.display = 'none';
+            }
+
+            const list = document.getElementById('subscribersList');
+            list.innerHTML = '';
+            subscribers.forEach((sub, idx) => {
+                const planInfo = planMap[sub.ratePlanProductOfferingId];
+                const row = document.createElement('div');
+                row.className = 'subscriber-row';
+                
+                const planName = `5G+ ${planInfo.cardId.split('-').slice(-2).join(' ').replace('canada', 'Canada-')}`;
+                const priceDisplay = sub.discount ? 
+                    `<span class="subscriber-price"><s>$${sub.originalPrice}/mo</s> $${sub.discountedPrice}/mo</span>
+                     <span class="subscriber-discount">-$${sub.discount}/mo</span>` : 
+                    `<span class="subscriber-price">$${sub.originalPrice}/mo</span>`;
+                
+                row.innerHTML = `
+                    <div class="subscriber-row-header">
+                        <div class="subscriber-row-summary">
+                            <span class="subscriber-badge">Subscriber ${sub.subscriberSequenceNumber}</span>
+                            ${sub.subscriberFullName ? `<span class="subscriber-name">${sub.subscriberFullName}</span>` : ''}
+                            <span class="subscriber-plan">${planName}</span>
+                            ${priceDisplay}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span class="expand-icon">▼</span>
+                            <div class="subscriber-actions">
+                                <button class="edit-btn" onclick="event.stopPropagation(); editSubscriber(${idx})" title="Edit subscriber">✏️</button>
+                                <button class="delete-btn" onclick="event.stopPropagation(); deleteSubscriber(${idx})" title="Delete subscriber">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="subscriber-row-content">
+                        <div class="subscriber-details">
+                            <div class="subscriber-info">
+                                <div>
+                                    <span>Business Group ID: ${sub.subscriberBusinessGroupId}</span>
+                                </div>
+                                ${(sub.subscriberFullName || sub.subscriberPhoneNumber || sub.subscriberSimType) ? `
+                                <div class="subscriber-details-info">
+                                    <span data-label="Name">${sub.subscriberFullName || 'Not set'}</span>
+                                    <span data-label="Phone">${sub.subscriberPhoneNumber || 'Not set'}</span>
+                                    <span data-label="SIM Type">${sub.subscriberSimType || 'Not set'}</span>
+                                </div>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+
+                row.addEventListener('click', () => {
+                    row.classList.toggle('expanded');
+                });
+                list.appendChild(row);
+            });
+        }
+        function updatePlanCTAs() {
+            document.querySelectorAll('.btn-primary').forEach(button => {
+                button.textContent = currentLineCount === 1 ? 'Add now' : `Add ${currentLineCount} lines`;
+            });
+        }
+        function switchView(view) {
+            if (view === 'table') {
+                document.getElementById('tableView').style.display = 'block';
+                document.getElementById('jsonView').style.display = 'none';
+                document.getElementById('tableViewBtn').classList.add('active');
+                document.getElementById('jsonViewBtn').classList.remove('active');
+            } else {
+                document.getElementById('tableView').style.display = 'none';
+                document.getElementById('jsonView').style.display = 'block';
+                document.getElementById('tableViewBtn').classList.remove('active');
+                document.getElementById('jsonViewBtn').classList.add('active');
+            }
+        }
+        function selectPlan(planId, planName, planPrice) {
+            const originalPrice = parseInt(planPrice.replace('$', ''));
+            let totalSubscribers = getTotalSubscribers() + currentLineCount;
+
+            const discountPerLine = calculateDiscount(totalSubscribers);
+            const isMultiLineDiscount = totalSubscribers > 1;
+
+            if (isAddingNewPlan) {
+                const existingCount = currentOutput.uiSubscribers.length;
+                const nextSequenceNumber = existingCount + 1;
+
+                // Update existing subscribers
+                currentOutput.uiSubscribers.forEach(sub => {
+                    sub.discount = isMultiLineDiscount && sub.ratePlanProductOfferingId !== 'unlimited-plan-id' ? discountPerLine : 0;
+                    sub.discountedPrice = sub.originalPrice - sub.discount;
+                });
+
+                // Add new subscribers
+                for (let i = 0; i < currentLineCount; i++) {
+                    const seqNum = nextSequenceNumber + i;
+                    const discount = isMultiLineDiscount && planId !== 'unlimited-plan-id' ? discountPerLine : 0;
+                    const discountedPrice = originalPrice - discount;
+                    currentOutput.uiSubscribers.push({
+                        ...config.uiSubscribers[0],
+                        subscriberBusinessGroupId: generateUUID(),
+                        subscriberSequenceNumber: seqNum,
+                        ratePlanProductOfferingId: planId,
+                        ratePlanQuoteItemId: `quote-item-${seqNum}`,
+                        currentActiveSubscriberInd: false,
+                        originalPrice: originalPrice,
+                        discountedPrice: discountedPrice,
+                        discount: discount
+                    });
+                }
+                currentOutput.mobilityTransactionInfo.defaultNumberOfPeople = currentOutput.uiSubscribers.length;
+                isAddingNewPlan = false;
+                effectiveMaxLines = maxLines;
+            } else {
+                currentOutput = { 
+                    uiSubscribers: [], 
+                    mobilityTransactionInfo: { 
+                        defaultNumberOfPeople: currentLineCount, 
+                        mobilityAccount: { maxSubscriberAllowed: maxLines } 
+                    } 
+                };
+                for (let i = 1; i <= currentLineCount; i++) {
+                    const discount = isMultiLineDiscount && planId !== 'unlimited-plan-id' ? discountPerLine : 0;
+                    const discountedPrice = originalPrice - discount;
+                    currentOutput.uiSubscribers.push({
+                        ...config.uiSubscribers[0],
+                        subscriberBusinessGroupId: generateUUID(),
+                        subscriberSequenceNumber: i,
+                        ratePlanProductOfferingId: planId,
+                        ratePlanQuoteItemId: `quote-item-${i}`,
+                        currentActiveSubscriberInd: false,
+                        originalPrice: originalPrice,
+                        discountedPrice: discountedPrice,
+                        discount: discount
+                    });
+                }
+            }
+
+            showSubscriberReview(currentOutput.uiSubscribers);
+            updateOutputPanel();
+            updateMultiLineDiscount();
+        }
+        function showSubscriberReview(subscribers) {
+            document.getElementById('planSelectionView').style.display = 'none';
+            document.getElementById('subscriberReviewView').style.display = 'block';
+            document.getElementById('editSubscriberView').style.display = 'none';
+            
+            // Hide "Add New Plan" button and show warning if max subscribers reached
+            const addNewPlanBtn = document.querySelector('.btn-outline');
+            const warningMessage = document.getElementById('maxSubscribersWarning');
+            if (subscribers.length >= maxLines) {
+                addNewPlanBtn.style.display = 'none';
+                warningMessage.style.display = 'block';
+                warningMessage.textContent = `Maximum number of subscribers (${maxLines}) reached.`;
+            } else {
+                addNewPlanBtn.style.display = 'block';
+                warningMessage.style.display = 'none';
+            }
+
+            const list = document.getElementById('subscribersList');
+            list.innerHTML = '';
+            subscribers.forEach((sub, idx) => {
+                const planInfo = planMap[sub.ratePlanProductOfferingId];
+                const row = document.createElement('div');
+                row.className = 'subscriber-row';
+                
+                const planName = `5G+ ${planInfo.cardId.split('-').slice(-2).join(' ').replace('canada', 'Canada-')}`;
+                const discountDisplay = sub.discount ? `<span class="subscriber-discount">-$${sub.discount}/mo</span>` : '';
+                row.innerHTML = `
+                    <div class="subscriber-row-header">
+                        <div class="subscriber-row-summary">
+                            <span class="subscriber-badge">Subscriber ${sub.subscriberSequenceNumber}</span>
+                            ${sub.subscriberFullName ? `<span class="subscriber-name">${sub.subscriberFullName}</span>` : ''}
+                            <span class="subscriber-plan">${planName}</span>
+                            <span class="subscriber-price">$${sub.discountedPrice}/mo</span>
+                            ${discountDisplay}
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <span class="expand-icon">▼</span>
+                            <div class="subscriber-actions">
+                                <button class="edit-btn" onclick="event.stopPropagation(); editSubscriber(${idx})" title="Edit subscriber">✏️</button>
+                                <button class="delete-btn" onclick="event.stopPropagation(); deleteSubscriber(${idx})" title="Delete subscriber">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="subscriber-row-content">
+                        <div class="subscriber-details">
+                            <div class="subscriber-info">
+                                <div>
+                                    <span>Business Group ID: ${sub.subscriberBusinessGroupId}</span>
+                                </div>
+                                ${(sub.subscriberFullName || sub.subscriberPhoneNumber || sub.subscriberSimType) ? `
+                                <div class="subscriber-details-info">
+                                    <span data-label="Name">${sub.subscriberFullName || 'Not set'}</span>
+                                    <span data-label="Phone">${sub.subscriberPhoneNumber || 'Not set'}</span>
+                                    <span data-label="SIM Type">${sub.subscriberSimType || 'Not set'}</span>
+                                </div>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+
+                row.addEventListener('click', () => {
+                    row.classList.toggle('expanded');
+                });
+                list.appendChild(row);
+            });
+        }
+function editSubscriber(index) {
+            editingSubscriberIndex = index;
+            const subscriber = currentOutput.uiSubscribers[index];
+            document.getElementById('subscriberReviewView').style.display = 'none';
+            document.getElementById('editSubscriberView').style.display = 'block';
+            document.getElementById('editingSubscriberInfo').textContent = `Editing plan for Subscriber ${subscriber.subscriberSequenceNumber}`;
+            
+            const currentPlanId = subscriber.ratePlanProductOfferingId;
+            const totalSubscribers = currentOutput.uiSubscribers.length;
+            const discountPerLine = calculateDiscount(totalSubscribers);
+            const isMultiLineDiscount = totalSubscribers > 1;
+
+            // Update plan cards in edit view
+            document.querySelectorAll('#editSubscriberView .plan-card').forEach(card => {
+                card.classList.remove('current-plan');
+                const cardId = card.id.replace('edit-plan-', '');
+                const planDetails = Object.values(planMap).find(plan => plan.cardId === cardId);
+                const originalPrice = parseInt(planDetails.price.replace('$', ''));
+
+                // Clear existing discount badge and current plan ribbon
+                const discountBadgeContainer = card.querySelector('.discount-badge-container');
+                discountBadgeContainer.innerHTML = '';
+                const existingRibbon = card.querySelector('.current-plan-badge');
+                if (existingRibbon) existingRibbon.remove();
+
+                // Update prices and discounts
+                const currentPriceElement = card.querySelector('.current-price .amount');
+                const originalPriceElement = card.querySelector('.original-price');
+
+                if (cardId === 'plan-5g-complete-explore') {
+                    // Ineligible plan: don't show discount
+                    currentPriceElement.textContent = originalPrice;
+                    originalPriceElement.style.display = 'none';
+                    card.querySelector('.plan-notice').style.display = 'block';
+                } else if (isMultiLineDiscount) {
+                    const discountedPrice = originalPrice - discountPerLine;
+                    currentPriceElement.textContent = discountedPrice;
+                    originalPriceElement.style.display = 'block';
+                    originalPriceElement.textContent = `$${originalPrice}/mo.`;
+
+                    // Add discount badge
+                    discountBadgeContainer.innerHTML = `
+                        <div class="discount-badge">
+                            Save $${discountPerLine}/mo per line
+                        </div>
+                    `;
+                    card.querySelector('.plan-notice').style.display = 'none';
+                } else {
+                    currentPriceElement.textContent = originalPrice;
+                    originalPriceElement.style.display = 'none';
+                    card.querySelector('.plan-notice').style.display = 'none';
+                }
+
+                // Handle current plan
+                if (card.id === `edit-plan-${planMap[currentPlanId].cardId}`) {
+                    card.classList.add('current-plan');
+                    // Add current plan ribbon
+                    const ribbon = document.createElement('div');
+                    ribbon.className = 'current-plan-badge';
+                    ribbon.textContent = 'Current selected plan';
+                    card.insertBefore(ribbon, card.firstChild);
+                    card.querySelector('button').textContent = 'Current Plan';
+                    card.querySelector('button').disabled = true;
+                } else {
+                    card.querySelector('button').textContent = 'Update Plan';
+                    card.querySelector('button').disabled = false;
+                }
+            });
+        }
+function updateSubscriberPlan(planId, planName, planPrice) {
+            const subscriber = currentOutput.uiSubscribers[editingSubscriberIndex];
+            const originalPrice = parseInt(planPrice.replace('$', ''));
+            const totalSubscribers = currentOutput.uiSubscribers.length;
+            const discountPerLine = calculateDiscount(totalSubscribers);
+            const isMultiLineDiscount = totalSubscribers > 1;
+            
+            // Check if the plan is eligible for multi-line discount
+            const isEligibleForDiscount = planId !== 'unlimited-plan-id';
+            
+            // Update the selected subscriber's plan details
+            subscriber.ratePlanProductOfferingId = planId;
+            subscriber.ratePlanQuoteItemId = `quote-item-${subscriber.subscriberSequenceNumber}-${planId}`;
+            subscriber.originalPrice = originalPrice;
+            
+            // Calculate discount and discounted price for the selected subscriber
+            if (isEligibleForDiscount && isMultiLineDiscount) {
+                subscriber.discount = discountPerLine;
+                subscriber.discountedPrice = originalPrice - discountPerLine;
+            } else {
+                subscriber.discount = 0;
+                subscriber.discountedPrice = originalPrice;
+            }
+
+            // Update discounts for all subscribers
+            currentOutput.uiSubscribers.forEach(sub => {
+                if (sub.subscriberSequenceNumber !== subscriber.subscriberSequenceNumber) {
+                    const subPlanId = sub.ratePlanProductOfferingId;
+                    const subOriginalPrice = parseInt(planMap[subPlanId].price.replace('$', ''));
+                    const subIsEligibleForDiscount = subPlanId !== 'unlimited-plan-id';
+                    
+                    sub.originalPrice = subOriginalPrice;
+                    
+                    if (subIsEligibleForDiscount && isMultiLineDiscount) {
+                        sub.discount = discountPerLine;
+                        sub.discountedPrice = subOriginalPrice - discountPerLine;
+                    } else {
+                        sub.discount = 0;
+                        sub.discountedPrice = subOriginalPrice;
+                    }
+                }
+            });
+
+            showSubscriberReview(currentOutput.uiSubscribers);
+            updateOutputPanel();
+        }
+        function deleteSubscriber(index) {
+            currentOutput.uiSubscribers.splice(index, 1);
+            const totalSubscribers = currentOutput.uiSubscribers.length;
+            const discountPerLine = calculateDiscount(totalSubscribers);
+            const isMultiLineDiscount = totalSubscribers > 1;
+
+            currentOutput.uiSubscribers.forEach((sub, idx) => {
+                sub.subscriberSequenceNumber = idx + 1;
+                sub.subscriberBusinessGroupId = generateUUID();
+                sub.ratePlanQuoteItemId = `quote-item-${idx + 1}`;
+                
+                // Recalculate discount for each subscriber
+                sub.discount = isMultiLineDiscount ? discountPerLine : 0;
+                sub.discountedPrice = sub.originalPrice - sub.discount;
+            });
+            
+            currentOutput.mobilityTransactionInfo.defaultNumberOfPeople = totalSubscribers;
+            showSubscriberReview(currentOutput.uiSubscribers);
+            updateOutputPanel();
+        }
+        function cancelEdit() {
+            editingSubscriberIndex = null;
+            document.getElementById('editSubscriberView').style.display = 'none';
+            document.getElementById('subscriberReviewView').style.display = 'block';
+        }
+        function backToPlans() {
+            document.getElementById('subscriberReviewView').style.display = 'none';
+            document.getElementById('planSelectionView').style.display = 'block';
+            currentLineCount = 1;
+            updateLineDisplay();
+        }
+        function addNewPlan() {
+            isAddingNewPlan = true;
+            effectiveMaxLines = maxLines - currentOutput.uiSubscribers.length;
+            currentLineCount = 1;
+            document.getElementById('subscriberReviewView').style.display = 'none';
+            document.getElementById('planSelectionView').style.display = 'block';
+            updateLineDisplay();
+            
+            // Update discounts for existing subscribers
+            const totalSubscribers = getTotalSubscribers() + 1; // +1 for the new plan
+            const discountPerLine = calculateDiscount(totalSubscribers);
+            const isMultiLineDiscount = totalSubscribers > 1;
+
+            currentOutput.uiSubscribers.forEach(sub => {
+                if (sub.ratePlanProductOfferingId !== 'unlimited-plan-id') {
+                    sub.discount = isMultiLineDiscount ? discountPerLine : 0;
+                    sub.discountedPrice = sub.originalPrice - sub.discount;
+                }
+            });
+
+            updateOutputPanel();
+            updateMultiLineDiscount();
+        }
+        function proceedToCheckout() {
+            if (!currentOutput || !currentOutput.uiSubscribers || currentOutput.uiSubscribers.length === 0) {
+                alert('Please select at least one plan before proceeding to checkout.');
+                return;
+            }
+
+            // Ensure all subscriber data is properly set
+            currentOutput.uiSubscribers = currentOutput.uiSubscribers.map((sub, index) => ({
+                ...sub,
+                subscriberSequenceNumber: index + 1,
+                subscriberBusinessGroupId: `UUID-${index + 1}`,
+                ratePlanQuoteItemId: `quote-item-${index + 1}`,
+                firstName: '',
+                lastName: '',
+                keepNumber: '',
+                simType: '',
+                phoneNumber: ''
+            }));
+
+            // Sort by sequence number before saving
+            currentOutput.uiSubscribers.sort((a, b) => a.subscriberSequenceNumber - b.subscriberSequenceNumber);
+
+            // Save to localStorage
+            localStorage.setItem('currentOutput', JSON.stringify(currentOutput));
+            console.log('Saved to localStorage:', currentOutput);
+            
+            window.location.href = 'checkout.html';
+        }
+        function updateOutputPanel() {
+            const outputSection = document.getElementById('outputSection');
+            outputSection.style.display = 'block';
+            document.getElementById('selectedPlanName').textContent = 'Multiple Plans Selected';
+            document.getElementById('selectedPlanDetails').textContent = `${currentOutput.uiSubscribers.length} subscribers`;
+            updateTableView();
+            updateJsonView();
+        }
+function updateTableView() {
+            const tableBody = document.getElementById('subscribersTableBody');
+            tableBody.innerHTML = '';
+            currentOutput.uiSubscribers.forEach(sub => {
+                const row = document.createElement('tr');
+                if (sub.currentActiveSubscriberInd) row.classList.add('active-subscriber');
+                row.innerHTML = `
+                    <td class="subscriber-number">${sub.subscriberSequenceNumber}</td>
+                    <td>5G+ ${planMap[sub.ratePlanProductOfferingId].cardId.split('-').slice(-2).join(' ').replace('canada', 'Canada-')}</td>
+                    <td>${sub.subscriberBusinessGroupId}</td>
+                    <td>${sub.currentActiveSubscriberInd ? 'Yes' : 'No'}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+function updateJsonView() {
+            const jsonView = document.getElementById('jsonView');
+            jsonView.textContent = JSON.stringify(currentOutput, null, 2);
+        }
+        function copyToClipboard() {
+            const jsonView = document.getElementById('jsonView');
+            const textArea = document.createElement('textarea');
+            textArea.value = jsonView.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('JSON copied to clipboard!');
+        }
+        function triggerSetActiveSubscriber() {
+            const activeSubscriberInput = document.getElementById('activeSubscriber');
+            const sequenceNumber = parseInt(activeSubscriberInput.value);
+            if (isNaN(sequenceNumber) || sequenceNumber < 1 || sequenceNumber > currentOutput.uiSubscribers.length) {
+                alert('Invalid subscriber sequence number');
+                return;
+            }
+            currentOutput.uiSubscribers.forEach(sub => {
+                sub.currentActiveSubscriberInd = (sub.subscriberSequenceNumber === sequenceNumber);
+            });
+            updateOutputPanel();
+            editSubscriber(sequenceNumber - 1); // Add this line to trigger the edit view
+        }
+
+        function showSubscriberForm(index) {
+            editingSubscriberIndex = index;
+            document.getElementById('subscriberForm').style.display = 'block';
+            const subscriber = currentOutput.uiSubscribers[index];
+            document.getElementById('subscriberFullName').value = subscriber.subscriberFullName || '';
+            document.getElementById('subscriberPhoneNumber').value = subscriber.subscriberPhoneNumber || '';
+            document.getElementById('subscriberSimType').value = subscriber.subscriberSimType || 'ESIM';
+        }
+
+        function saveSubscriberDetails() {
+            const fullName = document.getElementById('subscriberFullName').value;
+            const phoneNumber = document.getElementById('subscriberPhoneNumber').value;
+            const simType = document.getElementById('subscriberSimType').value;
+
+            if (!fullName || !phoneNumber) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            const subscriber = currentOutput.uiSubscribers[editingSubscriberIndex];
+            subscriber.subscriberFullName = fullName;
+            subscriber.subscriberPhoneNumber = phoneNumber;
+            subscriber.subscriberSimType = simType;
+
+            document.getElementById('subscriberForm').style.display = 'none';
+            showSubscriberReview(currentOutput.uiSubscribers);
+            updateOutputPanel();
+        }
+
+        function cancelSubscriberDetails() {
+            document.getElementById('subscriberForm').style.display = 'none';
+        }
+
+function editSubscriber(index) {
+            editingSubscriberIndex = index;
+            const subscriber = currentOutput.uiSubscribers[index];
+            document.getElementById('subscriberReviewView').style.display = 'none';
+            document.getElementById('editSubscriberView').style.display = 'block';
+            document.getElementById('editingSubscriberInfo').textContent = `Editing plan for Subscriber ${subscriber.subscriberSequenceNumber}`;
+            const currentPlanId = subscriber.ratePlanProductOfferingId;
+            
+            const totalSubscribers = currentOutput.uiSubscribers.length;
+            const discountPerLine = calculateDiscount(totalSubscribers);
+            const isMultiLineDiscount = totalSubscribers > 1;
+
+            document.querySelectorAll('#editSubscriberView .plan-card').forEach(card => {
+                card.classList.remove('current-plan');
+                const cardId = card.id.replace('edit-plan-', '');
+                const planDetails = Object.values(planMap).find(plan => plan.cardId === cardId);
+                const originalPrice = parseInt(planDetails.price.replace('$', ''));
+
+                // Clear existing discount badge
+                const discountBadgeContainer = card.querySelector('.discount-badge-container');
+                discountBadgeContainer.innerHTML = '';
+
+                // Remove existing current plan badge
+                const existingBadge = card.querySelector('.current-plan-badge');
+                if (existingBadge) {
+                    existingBadge.remove();
+                }
+
+                // Update prices and discounts
+                const currentPriceElement = card.querySelector('.current-price .amount');
+                const originalPriceElement = card.querySelector('.original-price');
+
+                // Always show original price for all plans except Explore
+                if (cardId === 'plan-5g-complete-explore') {
+                    originalPriceElement.style.display = 'none';
+                    currentPriceElement.textContent = originalPrice;
+                    card.querySelector('.plan-notice').style.display = 'block';
+                } else {
+                    originalPriceElement.style.display = 'block';
+                    originalPriceElement.textContent = `$${originalPrice}/mo.`;
+                    card.querySelector('.plan-notice').style.display = 'none';
+
+                    if (isMultiLineDiscount) {
+                        const discountedPrice = originalPrice - discountPerLine;
+                        currentPriceElement.textContent = discountedPrice;
+                        discountBadgeContainer.innerHTML = `
+                            <div class="discount-badge">
+                                Save $${discountPerLine}/mo per line
+                            </div>
+                        `;
+                    } else {
+                        currentPriceElement.textContent = originalPrice;
+                    }
+                }
+
+                if (card.id === `edit-plan-${planMap[currentPlanId].cardId}`) {
+                    // Current plan
+                    card.classList.add('current-plan');
+                    
+                    // Add current plan badge
+                    const badge = document.createElement('div');
+                    badge.className = 'current-plan-badge';
+                    badge.textContent = 'Current Plan';
+                    card.insertBefore(badge, card.firstChild);
+
+                    // Update button
+                    const button = card.querySelector('button');
+                    button.textContent = 'Currently Selected';
+                    button.disabled = true;
+
+                    // Show subscriber's current price
+                    currentPriceElement.textContent = subscriber.discountedPrice;
+                } else {
+                    // Other plans
+                    card.classList.remove('current-plan');
+                    const button = card.querySelector('button');
+                    button.textContent = 'Select Plan';
+                    button.disabled = false;
+                }
+            });
+        }
+
+        function setSubscriberDetails(seqNum, subscriberDetails) {
+            const subscriberIndex = currentOutput.uiSubscribers.findIndex(sub => sub.subscriberSequenceNumber === seqNum);
+            if (subscriberIndex === -1) {
+                console.error(`Subscriber with sequence number ${seqNum} not found`);
+                return null;
+            }
+
+            // Preserve existing subscriber data while updating with new details
+            const existingSubscriber = currentOutput.uiSubscribers[subscriberIndex];
+            currentOutput.uiSubscribers[subscriberIndex] = {
+                ...existingSubscriber,
+                ...subscriberDetails,
+                // Ensure these critical fields are preserved
+                subscriberSequenceNumber: existingSubscriber.subscriberSequenceNumber,
+                ratePlanProductOfferingId: existingSubscriber.ratePlanProductOfferingId,
+                ratePlanQuoteItemId: existingSubscriber.ratePlanQuoteItemId,
+                originalPrice: existingSubscriber.originalPrice,
+                discountedPrice: existingSubscriber.discountedPrice,
+                discount: existingSubscriber.discount,
+                currentActiveSubscriberInd: existingSubscriber.currentActiveSubscriberInd
+            };
+
+            return currentOutput;
+        }
+
+        function addSubscriberForm() {
+            const formContainer = document.getElementById('subscriberDetailsForm');
+            const formIndex = formContainer.children.length;
+            
+            // Generate unique pre-populated data for each subscriber
+            const sampleData = {
+                names: ['John Smith', 'Emma Wilson', 'Michael Brown', 'Sarah Davis', 'James Miller', 'Lisa Anderson'],
+                phones: [4161234567, 4167891234, 4165556789, 4169998877, 4164445555, 4161112233],
+                simTypes: ['ESIM', 'PHYSICAL']
+            };
+
+            const formHTML = `
+                <div class="subscriber-form">
+                    <h4>Subscriber ${formIndex + 1}</h4>
+                    <div class="form-group">
+                        <label>Subscriber Sequence Number</label>
+                        <input type="number" id="subscriberSeqNum${formIndex}" min="1" value="${formIndex + 1}">
+                    </div>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="subscriberName${formIndex}" value="${sampleData.names[formIndex % sampleData.names.length]}">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="number" id="subscriberPhone${formIndex}" value="${sampleData.phones[formIndex % sampleData.phones.length]}">
+                    </div>
+                    <div class="form-group">
+                        <label>SIM Type</label>
+                        <select id="subscriberSim${formIndex}">
+                            <option value="ESIM" ${formIndex % 2 === 0 ? 'selected' : ''}>ESIM</option>
+                            <option value="PHYSICAL" ${formIndex % 2 === 1 ? 'selected' : ''}>Physical SIM</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            formContainer.insertAdjacentHTML('beforeend', formHTML);
+        }
+
+        function triggerSetMultipleSubscriberDetails() {
+            if (!currentOutput || !currentOutput.uiSubscribers || currentOutput.uiSubscribers.length === 0) {
+                showError('Please select at least one plan before updating subscriber details.');
+                return;
+            }
+
+            const formContainer = document.getElementById('subscriberDetailsForm');
+            const forms = formContainer.children;
+            let updatedSubscribers = [];
+
+            for (let i = 0; i < forms.length; i++) {
+                const seqNum = parseInt(document.getElementById(`subscriberSeqNum${i}`).value);
+                const fullName = document.getElementById(`subscriberName${i}`).value;
+                const phoneNumber = parseInt(document.getElementById(`subscriberPhone${i}`).value);
+                const simType = document.getElementById(`subscriberSim${i}`).value;
+
+                if (isNaN(seqNum) || seqNum < 1 || seqNum > currentOutput.uiSubscribers.length) {
+                    showError(`Invalid subscriber sequence number for Subscriber ${i + 1}`);
+                    return;
+                }
+
+                if (!fullName || isNaN(phoneNumber) || !simType) {
+                    showError(`Please fill in all required fields with valid data for Subscriber ${i + 1}`);
+                    return;
+                }
+
+                const subscriberDetails = {
+                    subscriberFullName: fullName,
+                    subscriberPhoneNumber: phoneNumber,
+                    subscriberSimType: simType
+                };
+
+                updatedSubscribers.push({ seqNum, details: subscriberDetails });
+            }
+
+            let updatedOutput = currentOutput;
+            for (const subscriber of updatedSubscribers) {
+                updatedOutput = setSubscriberDetails(subscriber.seqNum, subscriber.details);
+                if (!updatedOutput) {
+                    showError(`Failed to update details for Subscriber ${subscriber.seqNum}`);
+                    return;
+                }
+            }
+
+            currentOutput = updatedOutput;
+            showSubscriberReview(currentOutput.uiSubscribers);
+            updateOutputPanel();
+
+            try {
+                // Dispatch the new "telus-plan-selection" event
+                const event = new CustomEvent('telus-plan-selection', {
+                    detail: {
+                        eventName: 'setSubscriberDetails',
+                        data: updatedSubscribers.map(sub => ({
+                            subscriberFullName: sub.details.subscriberFullName,
+                            subscriberPhoneNumber: sub.details.subscriberPhoneNumber,
+                            subscriberSimType: sub.details.subscriberSimType
+                        }))
+                    }
+                });
+                document.dispatchEvent(event);
+                showSuccess('Subscriber details updated successfully!');
+            } catch (error) {
+                console.error('Error dispatching event:', error);
+                showError('An error occurred while updating subscriber details.');
+                return;
+            }
+            
+            // Clear the form after successful update
+            formContainer.innerHTML = '';
+            addSubscriberForm();
+        }
+
+        // Add these new functions for error and success messages
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
+            setTimeout(() => successDiv.remove(), 5000);
+        }
+
+        // Add an event listener for the new custom event
+        document.addEventListener('telus-plan-selection', function(e) {
+            console.log('telus-plan-selection event received:', e.detail);
+            // Here you can add any additional logic to handle the event
+        });
+
+
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.classList.toggle('collapsed');
+        }
+
+        function init() {
+            updateJsonPreview();
+            applyConfiguration();
+            displayShareableLink();
+            addSubscriberForm(); // Add the first subscriber form
+            updateLineCounterMessage(); // Initialize the line counter message
+        }
+
+        function togglePanel(panelId) {
+            const panel = document.getElementById(panelId);
+            panel.classList.toggle('collapsed');
+            
+            const mainContent = document.querySelector('.main-content');
+            if (panelId === 'config-panel') {
+                mainContent.style.marginLeft = panel.classList.contains('collapsed') ? '0' : '350px';
+            } else if (panelId === 'output-panel') {
+                mainContent.style.marginRight = panel.classList.contains('collapsed') ? '0' : '500px';
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

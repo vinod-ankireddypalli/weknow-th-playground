@@ -1,0 +1,77 @@
+{
+  "uiSubscribers": [
+    {
+      "selectedProvinceCode": "ON",
+      "selectedCity": "TORONTO",
+      "marketSegmentId": "bb08e53d-0f4c-4486-bd0d-5c039a1809ac",
+      "selectedProductTypeId": "qweqwrwr-0f4c-4486-bd0d-5c039a1809ac",
+      "subscriberBusinessGroupId": "UUID-1",
+      "subscriberSequenceNumber": 1,
+      "ratePlanProductOfferingId": "20gb-plan-id",
+      "ratePlanQuoteItemId": "quote-item-1",
+      "currentActiveSubscriberInd": false,
+      "firstName": "",
+      "lastName": "",
+      "keepNumber": "",
+      "simType": "",
+      "phoneNumber": "",
+      "subscriberFullName": "John1 Doe",
+      "subscriberPhoneNumber": 111111111,
+      "subscriberSimType": "ESIM"
+    },
+    {
+      "selectedProvinceCode": "ON",
+      "selectedCity": "TORONTO",
+      "marketSegmentId": "bb08e53d-0f4c-4486-bd0d-5c039a1809ac",
+      "selectedProductTypeId": "qweqwrwr-0f4c-4486-bd0d-5c039a1809ac",
+      "subscriberBusinessGroupId": "UUID-2",
+      "subscriberSequenceNumber": 2,
+      "ratePlanProductOfferingId": "20gb-plan-id",
+      "ratePlanQuoteItemId": "quote-item-2",
+      "currentActiveSubscriberInd": false,
+      "firstName": "",
+      "lastName": "",
+      "keepNumber": "",
+      "simType": "",
+      "phoneNumber": ""
+    },
+    {
+      "selectedProvinceCode": "ON",
+      "selectedCity": "TORONTO",
+      "marketSegmentId": "bb08e53d-0f4c-4486-bd0d-5c039a1809ac",
+      "selectedProductTypeId": "qweqwrwr-0f4c-4486-bd0d-5c039a1809ac",
+      "subscriberBusinessGroupId": "UUID-3",
+      "subscriberSequenceNumber": 3,
+      "ratePlanProductOfferingId": "20gb-plan-id",
+      "ratePlanQuoteItemId": "quote-item-3",
+      "currentActiveSubscriberInd": false,
+      "firstName": "",
+      "lastName": "",
+      "keepNumber": "",
+      "simType": "",
+      "phoneNumber": ""
+    },
+    {
+      "selectedProvinceCode": "ON",
+      "selectedCity": "TORONTO",
+      "marketSegmentId": "bb08e53d-0f4c-4486-bd0d-5c039a1809ac",
+      "selectedProductTypeId": "qweqwrwr-0f4c-4486-bd0d-5c039a1809ac",
+      "subscriberBusinessGroupId": "UUID-4",
+      "subscriberSequenceNumber": 4,
+      "ratePlanProductOfferingId": "20gb-plan-id",
+      "ratePlanQuoteItemId": "quote-item-4",
+      "currentActiveSubscriberInd": false,
+      "firstName": "",
+      "lastName": "",
+      "keepNumber": "",
+      "simType": "",
+      "phoneNumber": ""
+    }
+  ],
+  "mobilityTransactionInfo": {
+    "defaultNumberOfPeople": 4,
+    "mobilityAccount": {
+      "maxSubscriberAllowed": 6
+    }
+  }
+}

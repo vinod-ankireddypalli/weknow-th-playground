@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Checkout Page Data Flow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .side {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2B2D42;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #2B2D42;
+            border-bottom: 2px solid #8D99AE;
+            padding-bottom: 10px;
+        }
+        .field {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .system-field {
+            border-left: 4px solid #2B2D42;
+        }
+        .user-field {
+            border-left: 4px solid #EF233C;
+        }
+        .field-label {
+            font-weight: bold;
+            color: #2B2D42;
+        }
+        .field-value {
+            color: #6c757d;
+            margin-left: 10px;
+        }
+        .note {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 4px;
+            color: #495057;
+        }
+        .arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #8D99AE;
+        }
+    </style>
+</head>
+<body>
+    <h1>Checkout Page Data Flow</h1>
+    <div class="container">
+        <div class="side">
+            <h2>Input from Rate Plan Page</h2>
+            <div class="field system-field">
+                <span class="field-label">Province Code:</span>
+                <span class="field-value">ON</span>
+            </div>
+            <div class="field system-field">
+                <span class="field-label">City:</span>
+                <span class="field-value">TORONTO</span>
+            </div>
+            <div class="field system-field">
+                <span class="field-label">Subscriber ID:</span>
+                <span class="field-value">UUID-1</span>
+            </div>
+            <div class="field system-field">
+                <span class="field-label">Sequence Number:</span>
+                <span class="field-value">1</span>
+            </div>
+            <div class="field system-field">
+                <span class="field-label">Rate Plan ID:</span>
+                <span class="field-value">20gb-plan-id</span>
+            </div>
+            <div class="field system-field">
+                <span class="field-label">Quote Item ID:</span>
+                <span class="field-value">quote-item-1</span>
+            </div>
+        </div>
+
+        <div class="arrow">➡️</div>
+
+        <div class="side">
+            <h2>Output after User Input</h2>
+            <div class="field system-field">
+                <span class="field-label">All system-provided fields</span>
+                <span class="field-value">(carried over from left side)</span>
+            </div>
+            <div class="field user-field">
+                <span class="field-label">First Name:</span>
+                <span class="field-value">John (User Input)</span>
+            </div>
+            <div class="field user-field">
+                <span class="field-label">Last Name:</span>
+                <span class="field-value">Doe (User Input)</span>
+            </div>
+            <div class="field user-field">
+                <span class="field-label">Keep Number:</span>
+                <span class="field-value">yes (User Selection)</span>
+            </div>
+            <div class="field user-field">
+                <span class="field-label">SIM Type:</span>
+                <span class="field-value">eSIM (User Selection)</span>
+            </div>
+            <div class="field user-field">
+                <span class="field-label">Phone Number:</span>
+                <span class="field-value">416-555-0123 (User Input)</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="note">
+        <strong>Note:</strong> This process repeats for each subscriber (defaultNumberOfPeople: 4)
+    </div>
+</body>
+</html>
