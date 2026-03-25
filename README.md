@@ -1,106 +1,65 @@
-# TELUS Plan Selection Demo
+# 🚀 weknow-th-playground
 
-This project demonstrates a plan selection interface for TELUS mobile plans, featuring multi-line discounts, subscriber management, and a checkout process.
+A personal playground for learning and practising **HTML**, **CSS**, **JavaScript**, and **Angular** by building projects.
 
-## Project Structure
+---
+
+## 🗺️ Learning Path
+
+| Stage | Technology | Topic | Project | Status | Live Demo |
+|---|---|---|---|---|---|
+| 1️⃣ | HTML + CSS + JS | Navigation Menu | [navigationMenu](./navigationMenu.html) | ✅ Done | [🌐 View](https://vinod-ankireddypalli.github.io/weknow-th-playground/navigationMenu.html) |
+| 2️⃣ | HTML + CSS | Forms | [forms](./html-css/forms/) | 🔜 Next | - |
+| 3️⃣ | HTML + CSS | Flexbox Layout | [flexbox](./html-css/flexbox/) | ⏳ Pending | - |
+| 4️⃣ | HTML + CSS | Grid Layout | [grid-layout](./html-css/grid-layout/) | ⏳ Pending | - |
+| 5️⃣ | JavaScript | DOM Manipulation | [dom-manipulation](./javascript/dom-manipulation/) | ⏳ Pending | - |
+| 6️⃣ | JavaScript | Fetch API | [fetch-api](./javascript/fetch-api/) | ⏳ Pending | - |
+| 7️⃣ | JavaScript | ES6 Features | [es6-features](./javascript/es6-features/) | ⏳ Pending | - |
+| 8️⃣ | Angular | Todo App | [todo-app](./angular/todo-app/) | ⏳ Pending | - |
+| 9️⃣ | Angular | Routing Demo | [routing-demo](./angular/routing-demo/) | ⏳ Pending | - |
+| 🔟 | Angular | Services & HTTP | [services-demo](./angular/services-demo/) | ⏳ Pending | - |
+
+---
+
+## 📁 Folder Structure
 
 ```
-.
-├── README.md
-├── constants.js         # Shared constants (plan IDs, prices, etc.)
-├── styles.js           # Shared style constants
-├── index.html          # Plan selection interface
-├── checkout.html       # Checkout process
-├── checkout_data_flow.js
-├── data_flow.html
-├── localStorage_simulation.json
-├── prism.yml
-├── simulate_checkout.js
-├── simulate_plan_selection.js
-└── test_subscriber_details.js
+weknow-th-playground/
+│
+├── navigationMenu.html        ✅ Navigation Menu (HTML + CSS + JS)
+├── style.css
+├── script.js
+│
+├── html-css/
+│   ├── forms/                 🔜 HTML Forms
+│   ├── flexbox/               ⏳ Flexbox Layout
+│   └── grid-layout/           ⏳ CSS Grid Layout
+│
+├── javascript/
+│   ├── dom-manipulation/      ⏳ DOM Manipulation
+│   ├── fetch-api/             ⏳ Fetch API
+│   └── es6-features/          ⏳ ES6 Features
+│
+├── angular/
+│   ├── todo-app/              ⏳ Angular Todo App
+│   ├── routing-demo/          ⏳ Angular Routing
+│   └── services-demo/         ⏳ Angular Services & HTTP
+│
+└── README.md
 ```
 
-## Key Features
+---
 
-- Plan selection with real-time pricing
-- Multi-line discount calculations
-- Subscriber management (add, edit, delete)
-- Plan comparison
-- Checkout process
-- Local storage integration
+## 🛠️ Tech Stack
 
-## Constants and Styling
+![HTML](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white)
+![CSS](https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
+![Angular](https://img.shields.io/badge/Angular-DD0031?style=flat&logo=angular&logoColor=white)
 
-The project uses two main files for managing constants and styles:
+---
 
-### constants.js
-Contains shared constants used throughout the application:
-- Plan IDs and names
-- Plan details (data amounts, prices)
-- Default configuration values
-- Color constants
+## 🌐 GitHub Pages
 
-### styles.js
-Contains shared style constants:
-- Layout measurements
-- Spacing values
-- Typography settings
-- Border radius values
-- Transition timings
-- Box shadows
-- Z-index values
-
-## Plan Types
-
-The application offers three main plan types:
-
-1. **5G+ Complete**
-   - 100GB data
-   - $85/month
-   - Nationwide coverage
-
-2. **5G+ Complete Canada-US**
-   - 175GB data
-   - $95/month
-   - Canada and US coverage
-
-3. **5G+ Complete Explore**
-   - 250GB data
-   - $115/month
-   - International coverage
-   - Not eligible for multi-line discount
-
-## Multi-line Discounts
-
-The application implements a tiered discount system:
-- 2 lines: $5 off per line
-- 3 lines: $7.50 off per line
-- 4+ lines: $10 off per line
-
-## Development
-
-To run the project locally:
-
-1. Clone the repository
-2. Open index.html in a web browser
-3. No build process required - pure HTML, CSS, and JavaScript
-
-## Browser Support
-
-The application uses modern JavaScript features and CSS properties. Tested on:
-- Chrome (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+Live demos are hosted via GitHub Pages:
+**Base URL:** `https://vinod-ankireddypalli.github.io/weknow-th-playground/`
